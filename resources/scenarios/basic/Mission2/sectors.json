@@ -1,0 +1,27 @@
+{
+    "s25": {
+        "agent": "human",
+        "vols": [
+            {
+                "boundary": ["A", "D", "G", "H", "E", "B"],
+                "min": 100,
+                "max": 200
+            }
+        ]
+    },
+    "s26": {
+        "agent": "AI007",
+        "vols": [
+            {
+                "boundary": ["B", "E", "H", "I", "F", "C"],
+                "min": 100,
+                "max": 150
+            },
+            {
+                "boundary": ["E", "H", "I", "F"],
+                "min": 150,
+                "max": 200
+            }
+        ]
+    }
+}
