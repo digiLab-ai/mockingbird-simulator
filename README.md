@@ -1,7 +1,7 @@
 # Mockingbird - Example Simulator
 
 <p align="center">
-    <img src="../app/src/mockingbird.svg" width="400" height="200" />
+    <img src="resources/icons/mockingbird.svg" width="400" height="200" />
 </p>
 
 Python DataFrame-based ATC simulator.
