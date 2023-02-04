@@ -1,8 +1,6 @@
 def test_simulator_is_importable():
     import simulator
 
-    assert True
-
 
 def test_simulator_is_runnable():
     from simulator import Simulator

@@ -8,6 +8,7 @@ authors = ["Freddy Wordingham <freddy@digilab.co.uk>"]
 interface = { git = "https://github.com/digiLab-ai/mockingbird-interface", branch = "main" }
 numpy = "^1.23.4"
 pandas = "^1.5.0"
+pydantic = { version = "^1.10.4", extras = ["dotenv"] }
 pyproj = "^3.4.0"
 python = ">=3.8,<3.12"
 shapely = "^1.8.5.post1"
