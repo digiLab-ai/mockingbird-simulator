@@ -8,11 +8,11 @@ Python DataFrame-based ATC simulator.
 
 ## Table of Contents
 
-- [Mockingbird - Example Simulator](#mockingbird---example-simulator)
-  - [Table of Contents](#table-of-contents)
-  - [Requirements](#requirements)
-  - [Quickstart](#quickstart)
-  - [Testing](#testing)
+-   [Mockingbird - Example Simulator](#mockingbird---example-simulator)
+    -   [Table of Contents](#table-of-contents)
+    -   [Requirements](#requirements)
+    -   [Quickstart](#quickstart)
+    -   [Testing](#testing)
 
 ## Requirements
 
@@ -21,10 +21,18 @@ Python DataFrame-based ATC simulator.
 
 ## Quickstart
 
-Change to the `simulator` directory:
+Clone the repository and `cd` into it:
 
 ```bash
+git clone https://github.com/digiLab-ai/mockingbird-simulator.git
 cd simulator
+```
+
+Copy the `.env.example` file to `.env` and fill out any missing values:
+
+```bash
+cp .env.example .env
+open .env
 ```
 
 Install the dependencies:
