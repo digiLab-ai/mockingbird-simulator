@@ -87,7 +87,8 @@ class Simulator(SimABC):
         return {
             "scenario_name": self.scenario_name,
             "fixes": [
-                {"id": i, "name": name} | self.state.fixes.loc[name].to_dict()
+                {"id": i, "name": name, "bay_names": self.state.bay_names}
+                | self.state.fixes.loc[name].to_dict()
                 for i, name in enumerate(self.state.fixes.index)
             ],
         }
