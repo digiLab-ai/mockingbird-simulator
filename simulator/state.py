@@ -41,6 +41,7 @@ class State:
         self.aircraft = pd.DataFrame(  # Flying machines in the simulation
             {
                 "agent": pd.Series(dtype="str"),  # Agent controlling the aircraft
+                "bay": pd.Series(dtype="str"),  # Bay to hold the aircraft strip
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
                 "lon": pd.Series(dtype="float"),  # Degrees East/West
                 "alt": pd.Series(dtype="float"),  # Flight level
