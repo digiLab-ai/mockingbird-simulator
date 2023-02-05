@@ -18,12 +18,13 @@ class State:
 
     geod = pyproj.Geod(ellps="WGS84")
 
-    def __init__(self, time: datetime.datetime):
+    def __init__(self, time: datetime.datetime, bay_names: list[str]):
         """
         Initialise a new simulation.
         """
 
         self.time = time  # Current time
+        self.bay_names = bay_names
         self.fixes = pd.DataFrame(  # Names locations in the simulation
             {
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
@@ -64,7 +65,8 @@ class State:
         with open(os.path.join(scenario_dir, "meta.json")) as file:
             meta = json.load(file)
             start_time = datetime.datetime.strptime(meta["start_time"], TIME_FORMAT)
-        state = State(start_time)
+            bay_names = meta["bay_names"]
+        state = State(start_time, bay_names)
 
         state._load_fixes(os.path.join(scenario_dir, "fixes.csv"))
         state._load_sectors(os.path.join(scenario_dir, "sectors.json"))
