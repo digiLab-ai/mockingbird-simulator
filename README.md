@@ -4,15 +4,18 @@
     <img src="resources/icons/mockingbird.svg" width="400" height="200" />
 </p>
 
+![digiLab](resources/badges/digilab.svg)
+[![slack](https://img.shields.io/badge/slack-@digilabglobal-purple.svg?logo=slack)](https://digilabglobal.slack.com)
+
 Python DataFrame-based ATC simulator.
 
 ## Table of Contents
 
--   [Mockingbird - Example Simulator](#mockingbird---example-simulator)
-    -   [Table of Contents](#table-of-contents)
-    -   [Requirements](#requirements)
-    -   [Quickstart](#quickstart)
-    -   [Testing](#testing)
+- [Mockingbird - Example Simulator](#mockingbird---example-simulator)
+  - [Table of Contents](#table-of-contents)
+  - [Requirements](#requirements)
+  - [Quickstart](#quickstart)
+  - [Testing](#testing)
 
 ## Requirements
 
