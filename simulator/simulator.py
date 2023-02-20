@@ -112,6 +112,20 @@ class Simulator(SimABC):
         Perform an action.
         """
 
-        print("WARNING: actions are not yet implemented for this Simulator.")
+        for action in actions:
+        # iterate through the list of dictionaries (actions) with action 
+            print(action["callsign"])
+            if action["type"] == "flight_level":
+                # if you find this key in any of the action dictionaries execute if statement
+                self._delta_flight_level(action)
+                # execute this function on the action dictionary
+
+        # print("WARNING: actions are not yet implemented for this Simulator.")
 
         return True
+
+    def _delta_flight_level(self, action):
+        # changing to the target altitude when specified in the action (via one of the dictionary keys)
+        print("IMPLEMENTING FLIGHT LEVEL ACTION")
+        if self.aircraft["alt"] == self.aircraft["target_alt"]:
+            print("hello it's all good here")

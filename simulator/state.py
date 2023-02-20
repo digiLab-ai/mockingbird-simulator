@@ -46,6 +46,7 @@ class State:
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
                 "lon": pd.Series(dtype="float"),  # Degrees East/West
                 "alt": pd.Series(dtype="float"),  # Flight level
+                "target_alt": pd.Series(dtype="float"), # Target altitude 
                 "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
                 "speed": pd.Series(dtype="float"),  # Knots
                 "rise": pd.Series(dtype="float"),  # Flight levels per second
@@ -151,6 +152,7 @@ class State:
         lat: float,
         lon: float,
         alt: float,
+        target_alt: float,
         heading: float,
         speed: float,
         rise: float,
@@ -163,7 +165,7 @@ class State:
         if callsign in self.aircraft.index:
             raise ValueError(f"Aircraft {callsign} already exists")
 
-        self.aircraft.loc[callsign] = [agent, lat, lon, alt, heading, speed, rise, turn]
+        self.aircraft.loc[callsign] = [agent, lat, lon, alt, target_alt, heading, speed, rise, turn]
 
     def remove_aircraft(self, callsign: str):
         """
@@ -208,8 +210,10 @@ class State:
         Evolve the vertical (alt) position of the aircraft.
         """
 
-        dt = time_delta.total_seconds()
-        self.aircraft["alt"] += self.aircraft["rise"] * dt
+        # dt = time_delta.total_seconds()
+        # self.aircraft["alt"] += self.aircraft["rise"] * dt
+
+        self.aircraft["alt"] += self.aircraft["target_alt"]
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """
