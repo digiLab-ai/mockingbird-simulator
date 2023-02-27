@@ -114,7 +114,7 @@ class Simulator(SimABC):
 
         for action in actions:
         # iterate through the list of dictionaries (actions) with action 
-            print(action["callsign"])
+
             if action["type"] == "flight_level":
                 # if you find this key in any of the action dictionaries execute if statement
                 self._delta_flight_level(action)
@@ -125,7 +125,21 @@ class Simulator(SimABC):
         return True
 
     def _delta_flight_level(self, action):
-        # changing to the target altitude when specified in the action (via one of the dictionary keys)
+        """
+        Change the altitude to the target altitude when flight_level specified in the action dictionary.
+        """
         print("IMPLEMENTING FLIGHT LEVEL ACTION")
-        if self.aircraft["alt"] == self.aircraft["target_alt"]:
-            print("hello it's all good here")
+        # print(action)
+
+        callsign = action["callsign"]
+        # callsign is now the callsign of the action that has flight_level included 
+        # print(f"Callsign: {callsign}")
+        new_tar_flight_level = action["value"]
+        # the target altitude is now the value indicated in the action dictionary of the action where flight_level included
+        # print(f"New FL: {new_tar_flight_level}")
+        self.state.aircraft.loc[(callsign, "target_alt")] = new_tar_flight_level
+        # changing the target altitude to the indicated value in the action dictionary
+
+
+
+    

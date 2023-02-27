@@ -208,12 +208,24 @@ class State:
     def _move_aircraft_vertically(self, time_delta: datetime.timedelta):
         """
         Evolve the vertical (alt) position of the aircraft.
+
+        Once an altitude greater to or equal to the target altitude is reached, 
+        the rise will adjust to 0.0 in order to maintain target altitude.
         """
 
-        # dt = time_delta.total_seconds()
-        # self.aircraft["alt"] += self.aircraft["rise"] * dt
+        dt = time_delta.total_seconds()
+        
+        for i in range((len(self.aircraft.index))):
+            # iterate through each aircraft to change each altitude to the target
+            if self.aircraft["alt"][i]>=self.aircraft["target_alt"][i]:
+                # once the altitude is equal to or > than target altitude, execute
+                callsign=self.aircraft.index[i]
+                self.aircraft.loc[(callsign,"rise")] = 0.0
+                # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
+                # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy 
 
-        self.aircraft["alt"] += self.aircraft["target_alt"]
+        self.aircraft["alt"] += self.aircraft["rise"] * dt
+        # increase the altitude based on rise speed * change in time
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """
