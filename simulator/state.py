@@ -49,7 +49,7 @@ class State:
                 "target_alt": pd.Series(dtype="float"), # Target altitude 
                 "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
                 "speed": pd.Series(dtype="float"),  # Knots
-                "rise": pd.Series(dtype="float"),  # Flight levels per second
+                "rise": pd.Series(dtype="float"),  # Flight levels per second (absolute value)
                 "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
             },
             dtype="str",
@@ -214,18 +214,25 @@ class State:
         """
 
         dt = time_delta.total_seconds()
-        
+
+        self.aircraft["alt"] += self.aircraft["rise"] * dt
+        # increase the altitude based on rise (absolute value speed) * change in time
+
         for i in range((len(self.aircraft.index))):
             # iterate through each aircraft to change each altitude to the target
-            if self.aircraft["alt"][i]>=self.aircraft["target_alt"][i]:
-                # once the altitude is equal to or > than target altitude, execute
+            altdifference=self.aircraft["target_alt"][i]-self.aircraft["alt"][i]
+            # difference between the target altitude and the altitude flight is currently at 
+            if altdifference==1 or altdifference==0 or altdifference==2:
+                # if the difference between the target and current altitude is either 0, 1, 2 flight levels (due to odd/even rise), execute:
                 callsign=self.aircraft.index[i]
                 self.aircraft.loc[(callsign,"rise")] = 0.0
                 # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
-                # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy 
+                # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy
+            elif altdifference<=-1:
+                callsign=self.aircraft.index[i]
+                self.aircraft.loc[(callsign,"rise")] = 0.0
+               # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
 
-        self.aircraft["alt"] += self.aircraft["rise"] * dt
-        # increase the altitude based on rise speed * change in time
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """
