@@ -41,16 +41,18 @@ class State:
         )
         self.aircraft = pd.DataFrame(  # Flying machines in the simulation
             {
-                "agent": pd.Series(dtype="str"),  # Agent controlling the aircraft
-                "bay": pd.Series(dtype="str"),  # Bay to hold the aircraft strip
-                "lat": pd.Series(dtype="float"),  # Degrees North/South
-                "lon": pd.Series(dtype="float"),  # Degrees East/West
-                "alt": pd.Series(dtype="float"),  # Flight level
-                "target_alt": pd.Series(dtype="float"), # Target altitude 
-                "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
-                "speed": pd.Series(dtype="float"),  # Knots
-                "rise": pd.Series(dtype="float"),  # Flight levels per second (absolute value)
-                "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
+                "agent": pd.Series(dtype="str"),             # Agent controlling the aircraft
+                "bay": pd.Series(dtype="str"),               # Bay to hold the aircraft strip
+                "lat": pd.Series(dtype="float"),             # Degrees North/South
+                "lon": pd.Series(dtype="float"),             # Degrees East/West
+                "alt": pd.Series(dtype="float"),             # Flight level
+                "target_alt": pd.Series(dtype="float"),      # Target altitude
+                "heading": pd.Series(dtype="float"),         # Degrees clockwise from North
+                "target_heading": pd.Series(dtype="float"),  # Degrees clockwise from North
+                "speed": pd.Series(dtype="float"),           # Knots
+                "target_speed": pd.Series(dtype="float"),    # Knots
+                "rise": pd.Series(dtype="float"),            # Flight levels per second (absolute value)
+                "turn": pd.Series(dtype="float"),            # Degrees clockwise per second
             },
             dtype="str",
         )
