@@ -46,9 +46,10 @@ class State:
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
                 "lon": pd.Series(dtype="float"),  # Degrees East/West
                 "alt": pd.Series(dtype="float"),  # Flight level
+                "target_alt": pd.Series(dtype="float"), # Target altitude 
                 "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
                 "speed": pd.Series(dtype="float"),  # Knots
-                "rise": pd.Series(dtype="float"),  # Flight levels per second
+                "rise": pd.Series(dtype="float"),  # Flight levels per second (absolute value)
                 "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
             },
             dtype="str",
@@ -151,6 +152,7 @@ class State:
         lat: float,
         lon: float,
         alt: float,
+        target_alt: float,
         heading: float,
         speed: float,
         rise: float,
@@ -163,7 +165,7 @@ class State:
         if callsign in self.aircraft.index:
             raise ValueError(f"Aircraft {callsign} already exists")
 
-        self.aircraft.loc[callsign] = [agent, lat, lon, alt, heading, speed, rise, turn]
+        self.aircraft.loc[callsign] = [agent, lat, lon, alt, target_alt, heading, speed, rise, turn]
 
     def remove_aircraft(self, callsign: str):
         """
@@ -206,10 +208,31 @@ class State:
     def _move_aircraft_vertically(self, time_delta: datetime.timedelta):
         """
         Evolve the vertical (alt) position of the aircraft.
+
+        Once an altitude greater to or equal to the target altitude is reached, 
+        the rise will adjust to 0.0 in order to maintain target altitude.
         """
 
         dt = time_delta.total_seconds()
+
         self.aircraft["alt"] += self.aircraft["rise"] * dt
+        # increase the altitude based on rise (absolute value speed) * change in time
+
+        for i in range((len(self.aircraft.index))):
+            # iterate through each aircraft to change each altitude to the target
+            altdifference=self.aircraft["target_alt"][i]-self.aircraft["alt"][i]
+            # difference between the target altitude and the altitude flight is currently at 
+            if altdifference==1 or altdifference==0 or altdifference==2:
+                # if the difference between the target and current altitude is either 0, 1, 2 flight levels (due to odd/even rise), execute:
+                callsign=self.aircraft.index[i]
+                self.aircraft.loc[(callsign,"rise")] = 0.0
+                # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
+                # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy
+            elif altdifference<=-1:
+                callsign=self.aircraft.index[i]
+                self.aircraft.loc[(callsign,"rise")] = 0.0
+               # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
+
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """

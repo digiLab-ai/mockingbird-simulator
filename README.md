@@ -19,8 +19,8 @@ Python DataFrame-based ATC simulator.
 
 ## Requirements
 
--   [Python](https://www.python.org/)
--   [Poetry](https://python-poetry.org/docs/#installation)
+- [Python](https://www.python.org/)
+- [Poetry](https://python-poetry.org/docs/#installation)
 
 ## Quickstart
 
@@ -49,6 +49,8 @@ Run the simulator:
 ```bash
 poetry run python examples/run.py
 ```
+
+Run from the top-level of the repository.
 
 ## Testing
 
