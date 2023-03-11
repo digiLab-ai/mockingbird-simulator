@@ -113,41 +113,18 @@ class Simulator(SimABC):
         """
 
         for action in actions:
-            # iterate through the list of dictionaries (actions) with action
-
-            if action["kind"] == "flight_level":
-                # if you find this key in any of the action dictionaries execute if statement
-                self._delta_flight_level(action)
-                # execute this function on the action dictionary
-            elif action["kind"] in [
+            kind = action["kind"]
+            if kind in [
                 "flight_level",
                 "speed",
-                "alt",
                 "heading",
-            ]:  # TODO: Replace "flight level?"
+            ]:
                 callsign = action["callsign"]
-                new_value = action["value"]
-                self.state.aircraft.loc[(callsign, action["kind"])] = new_value
+                new_target = action["value"]
+                self.state.aircraft.loc[(callsign, kind)] = new_target
             else:
                 warnings.warn(
-                    f"Action: {action['kind']} is not yet implemented in this simulator."
+                    f"Action: {kind} is not yet implemented by this simulator."
                 )
 
         return True
-
-    def _delta_flight_level(self, action):
-        """
-        Change the altitude to the target altitude when flight_level specified in the action dictionary.
-
-        Note: altitudes will still evolve to target altitudes, but when flight_level action specified,
-        user-inputted target altitude will be aimed for.
-        """
-        print("IMPLEMENTING FLIGHT LEVEL ACTION")
-        # print(action)
-
-        callsign = action["callsign"]
-        # callsign is now the callsign of the action that has flight_level included
-        new_tar_flight_level = action["value"]
-        # the target altitude is now the value indicated in the action dictionary of the action where flight_level included
-        self.state.aircraft.loc[(callsign, "target_alt")] = new_tar_flight_level
-        # changing the target altitude to the indicated value in the action dictionary

@@ -36,11 +36,10 @@ sim.action(
     [
         {
             "callsign": "BAW123",
-            "kind": "flight_level",
+            "kind": "heading",
             "subkind": "absolute",
-            "value": 140,
-        },
-        {"callsign": "FLY456", "kind": "speed", "subkind": "absolute", "value": 200},
+            "value": 45.0,
+        }
     ]
 )
 
