@@ -121,7 +121,7 @@ class Simulator(SimABC):
             ]:
                 callsign = action["callsign"]
                 new_target = action["value"]
-                self.state.aircraft.loc[(callsign, kind)] = new_target
+                self.state.aircraft.loc[(callsign, f"target_{kind}")] = new_target
             else:
                 warnings.warn(
                     f"Action: {kind} is not yet implemented by this simulator."
