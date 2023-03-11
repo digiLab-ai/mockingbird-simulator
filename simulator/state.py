@@ -22,9 +22,10 @@ class State:
         """
 
         self.time = time  # Current time
+        self.tick = 0  # Number of times the simulation has been ticked forward one settings.TIME_STEP_DELTA
         self.extra_time = datetime.timedelta(
             0
-        )  # Difference in time between total calls to evolve, and the state that has been actually ticked forward.
+        )  # Difference in time between total calls to evolve, and the state that has been actually ticked forward
         self.bay_names = bay_names
         self.fixes = pd.DataFrame(  # Names locations in the simulation
             {
@@ -140,7 +141,7 @@ class State:
 
         width = 72
         buffer = " STATE ".center(width, "=") + "\n"
-        buffer += f"{self.time}".center(width, " ") + "\n"
+        buffer += f"{self.time} - t{self.tick}".center(width, " ") + "\n"
 
         # buffer += " fixes ".center(width, "-") + "\n"
         # buffer += f"{self.fixes}\n"
@@ -211,11 +212,11 @@ class State:
         self.extra_time = (num_steps * settings.TIME_STEP_DELTA) - evolve_delta
 
         for _ in range(num_steps):
+            self._rotate_aircraft(settings.TIME_STEP_DELTA)
             self._move_aircraft_laterally(settings.TIME_STEP_DELTA)
             self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
-            self._rotate_aircraft(settings.TIME_STEP_DELTA)
             self.time += settings.TIME_STEP_DELTA
-        print(f"{self.time}")
+            self.tick += 1
 
     def _move_aircraft_laterally(self, time_delta: datetime.timedelta):
         """
@@ -224,7 +225,7 @@ class State:
 
         dt = time_delta.total_seconds()
 
-        distances = self.aircraft["speed"] * (1852 / 3600) * dt
+        distances = self.aircraft["speed"] * (1852.0 / 3600.0) * dt
         proj_lon, proj_lat, _ = self.geod.fwd(
             self.aircraft["lon"],
             self.aircraft["lat"],
