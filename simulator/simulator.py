@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import warnings
 
 # 1) Import the Simulator from the interface module
 from interface import Simulator as SimABC
@@ -115,12 +116,16 @@ class Simulator(SimABC):
         for action in actions:
         # iterate through the list of dictionaries (actions) with action 
 
-            if action["type"] == "flight_level":
+            if action["kind"] == "flight_level":
                 # if you find this key in any of the action dictionaries execute if statement
                 self._delta_flight_level(action)
                 # execute this function on the action dictionary
-            else: 
-                print("WARNING: actions are not yet implemented for this Simulator.")
+            elif action["kind"] in ["flight_level", "speed", "alt", "heading"]: # TODO: Replace "flight level?"
+                callsign = action["callsign"]
+                new_value = action["value"]
+                self.state.aircraft.loc[(callsign, action["kind"])] = new_value
+            else:
+                warnings.warn(f"Action: {action['kind']} is not yet implemented in this simulator.")
 
         return True
 
