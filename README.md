@@ -1,4 +1,4 @@
-# Mockingbird - Example Simulator
+# Mockingbird - Simulator
 
 <p align="center">
     <img src="resources/icons/mockingbird.svg" width="400" height="200" />
@@ -11,7 +11,7 @@ Python DataFrame-based ATC simulator.
 
 ## Table of Contents
 
-- [Mockingbird - Example Simulator](#mockingbird---example-simulator)
+- [Mockingbird - Simulator](#mockingbird---simulator)
   - [Table of Contents](#table-of-contents)
   - [Requirements](#requirements)
   - [Quickstart](#quickstart)
@@ -19,8 +19,8 @@ Python DataFrame-based ATC simulator.
 
 ## Requirements
 
-- [Python](https://www.python.org/)
-- [Poetry](https://python-poetry.org/docs/#installation)
+-   [Python](https://www.python.org/)
+-   [Poetry](https://python-poetry.org/docs/#installation)
 
 ## Quickstart
 
