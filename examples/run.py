@@ -4,7 +4,7 @@ import time
 from simulator import Simulator
 
 UPDATE_PERIOD = 1.0  # Period between updates (seconds)
-RATE_OF_TIME = 1.0  # Simulated seconds per wall-clock second
+RATE_OF_TIME = 6.0  # Simulated seconds per wall-clock second
 
 categories = Simulator.list_scenario_categories()
 scenarios = Simulator.list_scenarios(categories[0])
@@ -40,7 +40,7 @@ sim.action(
             "subkind": "absolute",
             "value": 140,
         },
-        {"callsign": "BAW123", "kind": "speed", "subkind": "absolute", "value": 200},
+        {"callsign": "FLY456", "kind": "speed", "subkind": "absolute", "value": 200},
     ]
 )
 

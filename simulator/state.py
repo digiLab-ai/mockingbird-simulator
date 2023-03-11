@@ -5,13 +5,8 @@ import pandas as pd
 import pathlib
 import pyproj
 
+from . import settings
 from .airspace import Airspace
-
-
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-TIME_STEP_DELTA = datetime.timedelta(
-    microseconds=100
-)  # Steps will always be this amount of time. Longer steps will be broken down into multiple steps of this duration.
 
 
 class State:
@@ -27,6 +22,9 @@ class State:
         """
 
         self.time = time  # Current time
+        self.extra_time = datetime.timedelta(
+            0
+        )  # Difference in time between total calls to evolve, and the state that has been actually ticked forward.
         self.bay_names = bay_names
         self.fixes = pd.DataFrame(  # Names locations in the simulation
             {
@@ -74,7 +72,9 @@ class State:
 
         with open(os.path.join(scenario_dir, "meta.json")) as file:
             meta = json.load(file)
-            start_time = datetime.datetime.strptime(meta["start_time"], TIME_FORMAT)
+            start_time = datetime.datetime.strptime(
+                meta["start_time"], settings.TIME_FORMAT
+            )
             bay_names = meta["bay_names"]
         state = State(start_time, bay_names)
 
@@ -196,17 +196,25 @@ class State:
 
         self.aircraft.drop(callsign, inplace=True)
 
-    def evolve(self, time_delta: datetime.timedelta):
+    def evolve(self, evolve_delta: datetime.timedelta):
         """
         Evolve the simulation by a given time delta.
         """
 
-        internal_time_delta = datetime.timedelta(milliseconds=100)
+        if evolve_delta < datetime.timedelta(seconds=0):
+            raise ValueError(f"Evolve delta must be positive")
 
-        self._move_aircraft_laterally(time_delta)
-        self._move_aircraft_vertically(time_delta)
-        self._rotate_aircraft(time_delta)
-        self.time += time_delta
+        evolve_delta -= self.extra_time
+        num_steps = int(evolve_delta / settings.TIME_STEP_DELTA) + 1
+        self.extra_time = (num_steps * settings.TIME_STEP_DELTA) - evolve_delta
+        print(f"{self.time} -> {self.extra_time}")
+
+        for _ in range(num_steps):
+            self._move_aircraft_laterally(settings.TIME_STEP_DELTA)
+            self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
+            self._rotate_aircraft(settings.TIME_STEP_DELTA)
+            self.time += settings.TIME_STEP_DELTA
+        print(f"{self.time}")
 
     def _move_aircraft_laterally(self, time_delta: datetime.timedelta):
         """
