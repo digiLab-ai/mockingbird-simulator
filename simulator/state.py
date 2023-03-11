@@ -1,5 +1,6 @@
 import datetime
 import json
+import numpy as np
 import os
 import pandas as pd
 import pathlib
@@ -59,6 +60,9 @@ class State:
                     dtype="float"
                 ),  # Flight levels per second (absolute value)
                 "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
+                "max_turn_rate": pd.Series(
+                    dtype="float"
+                ),  # Maximum rate of turn (degrees per second)
             },
             dtype="str",
         )
@@ -169,6 +173,7 @@ class State:
         target_speed: float,
         rise: float,
         turn: float,
+        max_turn_rate: float,
     ):
         """
         Add an aircraft to the simulation.
@@ -189,6 +194,7 @@ class State:
             target_speed,
             rise,
             turn,
+            max_turn_rate,
         ]
 
     def remove_aircraft(self, callsign: str):
@@ -280,3 +286,20 @@ class State:
         dt = time_delta.total_seconds()
         self.aircraft["heading"] += self.aircraft["turn"] * dt
         self.aircraft["heading"] %= 360.0
+
+        self.aircraft = self.aircraft.apply(lambda a: rotate_aircraft(a, dt), axis=1)
+
+
+def rotate_aircraft(aircraft, dt):
+    aircraft["heading"] += (
+        calc_sign(aircraft["heading"], aircraft["target_heading"], 1.0)
+        * aircraft["max_turn_rate"]
+        * dt
+    )
+    return pd.Series(aircraft)
+
+
+def calc_sign(x, target_x, max_delta):
+    n = (target_x - x) / max_delta
+    z = max(min(n, 1), -1)
+    return z
