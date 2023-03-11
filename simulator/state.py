@@ -205,9 +205,10 @@ class State:
             raise ValueError(f"Evolve delta must be positive")
 
         evolve_delta -= self.extra_time
-        num_steps = int(evolve_delta / settings.TIME_STEP_DELTA) + 1
+        num_steps = int(evolve_delta / settings.TIME_STEP_DELTA)
+        if (num_steps * settings.TIME_STEP_DELTA) < evolve_delta:
+            num_steps += 1
         self.extra_time = (num_steps * settings.TIME_STEP_DELTA) - evolve_delta
-        print(f"{self.time} -> {self.extra_time}")
 
         for _ in range(num_steps):
             self._move_aircraft_laterally(settings.TIME_STEP_DELTA)
