@@ -9,6 +9,9 @@ from .airspace import Airspace
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+TIME_STEP_DELTA = datetime.timedelta(
+    microseconds=100
+)  # Steps will always be this amount of time. Longer steps will be broken down into multiple steps of this duration.
 
 
 class State:
@@ -41,18 +44,22 @@ class State:
         )
         self.aircraft = pd.DataFrame(  # Flying machines in the simulation
             {
-                "agent": pd.Series(dtype="str"),             # Agent controlling the aircraft
-                "bay": pd.Series(dtype="str"),               # Bay to hold the aircraft strip
-                "lat": pd.Series(dtype="float"),             # Degrees North/South
-                "lon": pd.Series(dtype="float"),             # Degrees East/West
-                "alt": pd.Series(dtype="float"),             # Flight level
-                "target_alt": pd.Series(dtype="float"),      # Target altitude
-                "heading": pd.Series(dtype="float"),         # Degrees clockwise from North
-                "target_heading": pd.Series(dtype="float"),  # Degrees clockwise from North
-                "speed": pd.Series(dtype="float"),           # Knots
-                "target_speed": pd.Series(dtype="float"),    # Knots
-                "rise": pd.Series(dtype="float"),            # Flight levels per second (absolute value)
-                "turn": pd.Series(dtype="float"),            # Degrees clockwise per second
+                "agent": pd.Series(dtype="str"),  # Agent controlling the aircraft
+                "bay": pd.Series(dtype="str"),  # Bay to hold the aircraft strip
+                "lat": pd.Series(dtype="float"),  # Degrees North/South
+                "lon": pd.Series(dtype="float"),  # Degrees East/West
+                "alt": pd.Series(dtype="float"),  # Flight level
+                "target_alt": pd.Series(dtype="float"),  # Target altitude
+                "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
+                "target_heading": pd.Series(
+                    dtype="float"
+                ),  # Degrees clockwise from North
+                "speed": pd.Series(dtype="float"),  # Knots
+                "target_speed": pd.Series(dtype="float"),  # Knots
+                "rise": pd.Series(
+                    dtype="float"
+                ),  # Flight levels per second (absolute value)
+                "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
             },
             dtype="str",
         )
@@ -167,7 +174,17 @@ class State:
         if callsign in self.aircraft.index:
             raise ValueError(f"Aircraft {callsign} already exists")
 
-        self.aircraft.loc[callsign] = [agent, lat, lon, alt, target_alt, heading, speed, rise, turn]
+        self.aircraft.loc[callsign] = [
+            agent,
+            lat,
+            lon,
+            alt,
+            target_alt,
+            heading,
+            speed,
+            rise,
+            turn,
+        ]
 
     def remove_aircraft(self, callsign: str):
         """
@@ -183,6 +200,8 @@ class State:
         """
         Evolve the simulation by a given time delta.
         """
+
+        internal_time_delta = datetime.timedelta(milliseconds=100)
 
         self._move_aircraft_laterally(time_delta)
         self._move_aircraft_vertically(time_delta)
@@ -211,7 +230,7 @@ class State:
         """
         Evolve the vertical (alt) position of the aircraft.
 
-        Once an altitude greater to or equal to the target altitude is reached, 
+        Once an altitude greater to or equal to the target altitude is reached,
         the rise will adjust to 0.0 in order to maintain target altitude.
         """
 
@@ -222,19 +241,18 @@ class State:
 
         for i in range((len(self.aircraft.index))):
             # iterate through each aircraft to change each altitude to the target
-            altdifference=self.aircraft["target_alt"][i]-self.aircraft["alt"][i]
-            # difference between the target altitude and the altitude flight is currently at 
-            if altdifference==1 or altdifference==0 or altdifference==2:
+            altdifference = self.aircraft["target_alt"][i] - self.aircraft["alt"][i]
+            # difference between the target altitude and the altitude flight is currently at
+            if altdifference == 1 or altdifference == 0 or altdifference == 2:
                 # if the difference between the target and current altitude is either 0, 1, 2 flight levels (due to odd/even rise), execute:
-                callsign=self.aircraft.index[i]
-                self.aircraft.loc[(callsign,"rise")] = 0.0
+                callsign = self.aircraft.index[i]
+                self.aircraft.loc[(callsign, "rise")] = 0.0
                 # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
                 # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy
-            elif altdifference<=-1:
-                callsign=self.aircraft.index[i]
-                self.aircraft.loc[(callsign,"rise")] = 0.0
-               # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
-
+            elif altdifference <= -1:
+                callsign = self.aircraft.index[i]
+                self.aircraft.loc[(callsign, "rise")] = 0.0
+            # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """

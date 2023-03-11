@@ -28,16 +28,17 @@ def iterate_forward_one_step(sim):
     )
 
 
-for n in range(1):
+for n in range(5):
     iterate_forward_one_step(sim)
 
+print("Sending action")
 sim.action(
     [
         {
             "callsign": "BAW123",
             "kind": "flight_level",
             "subkind": "absolute",
-            "value": 114,
+            "value": 140,
         },
         {"callsign": "BAW123", "kind": "speed", "subkind": "absolute", "value": 200},
     ]
