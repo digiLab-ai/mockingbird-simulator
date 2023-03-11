@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import time
 
@@ -13,12 +12,13 @@ scenarios = Simulator.list_scenarios(categories[0])
 sim = Simulator(categories[0], scenarios[0])
 
 
-now = datetime.datetime.now()
-for n in range(1):
+def iterate_forward_one_step(sim):
+    """
+    Increment the simulator forward one step.
+    """
+    now = datetime.datetime.now()
     print(f"\n> {sim.state}")
-
     sim.evolve(UPDATE_PERIOD * RATE_OF_TIME)
-
     time.sleep(
         max(
             0.0,
@@ -27,30 +27,21 @@ for n in range(1):
         )
     )
 
-sim.action([
-    {
-        "callsign": "BAW123",
-        "type": "flight_level",
-        "subtype": "absolute",
-        "value": 114
-    },
-    {
-        "callsign": "BAW123",
-        "type": "speed",
-        "subtype": "absolute",
-        "value": 200
-    },
-])
+
+for n in range(1):
+    iterate_forward_one_step(sim)
+
+sim.action(
+    [
+        {
+            "callsign": "BAW123",
+            "kind": "flight_level",
+            "subkind": "absolute",
+            "value": 114,
+        },
+        {"callsign": "BAW123", "kind": "speed", "subkind": "absolute", "value": 200},
+    ]
+)
 
 while True:
-    print(f"\n< {sim.state}")
-
-    sim.evolve(UPDATE_PERIOD * RATE_OF_TIME)
-
-    time.sleep(
-        max(
-            0.0,
-            UPDATE_PERIOD
-            - ((datetime.datetime.now() - now).microseconds / (UPDATE_PERIOD * 1e6)),
-        )
-    )
+    iterate_forward_one_step(sim)
