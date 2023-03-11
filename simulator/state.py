@@ -164,7 +164,9 @@ class State:
         alt: float,
         target_alt: float,
         heading: float,
+        target_heading: float,
         speed: float,
+        target_speed: float,
         rise: float,
         turn: float,
     ):
@@ -182,7 +184,9 @@ class State:
             alt,
             target_alt,
             heading,
+            target_heading,
             speed,
+            target_speed,
             rise,
             turn,
         ]
