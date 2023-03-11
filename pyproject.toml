@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "simulator"
-version = "1.0.0"
+version = "1.1.0"
 description = "Air traffic control simulator"
-authors = ["Freddy Wordingham <freddy@digilab.co.uk>"]
+authors = ["Freddy Wordingham <freddy@digilab.co.uk>, Michelle Bieger <michelle@digilab.co.uk>, Alexander Mead <alexander@digilab.co.uk>"]
 
 [tool.poetry.dependencies]
 interface = { git = "https://github.com/digiLab-ai/mockingbird-interface", branch = "main" }
