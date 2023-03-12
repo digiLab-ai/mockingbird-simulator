@@ -379,10 +379,10 @@ class State:
         """
 
         def rotate_aircraft_helper(aircraft):
-            aircraft["turn"] = (
-                calc_sign(aircraft["heading"], aircraft["target_heading"], 5.0)
-                * aircraft["max_turn_rate"]
-            )
+            delta = aircraft["target_heading"] - aircraft["heading"]
+            if delta < -180.0:
+                delta += 360.0
+            aircraft["turn"] = calc_sign(0, delta, 5.0) * aircraft["max_turn_rate"]
             return pd.Series(aircraft)
 
         self.aircraft = self.aircraft.apply(rotate_aircraft_helper, axis=1)

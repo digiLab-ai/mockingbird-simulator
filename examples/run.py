@@ -41,7 +41,7 @@ print("Sending action")
 sim.action(
     [
         {
-            "time": "2019-01-01 00:00:02",
+            "time": "2019-01-01 00:00:10",
             "agent": "human",
             "callsign": "BOW446",
             "kind": "heading",
