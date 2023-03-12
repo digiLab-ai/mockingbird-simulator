@@ -236,6 +236,9 @@ class State:
 
         for action in actions:
             time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
+            if action["kind"] in ["flight_level", "heading", "speed"]:
+                action["value"] = float(action["value"])
+
             self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
 
     def evolve(self, evolve_delta: datetime.timedelta):

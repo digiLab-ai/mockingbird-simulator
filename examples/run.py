@@ -103,7 +103,7 @@ if __name__ == "__main__":
                 "callsign": "FLY456",
                 "kind": "heading",
                 "subkind": "absolute",
-                "value": 45.0,
+                "value": "45.0",
             }
         ],
     )
