@@ -286,6 +286,10 @@ class State:
             time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
             if action["kind"] in ["flight_level", "heading", "speed"]:
                 action["value"] = float(action["value"])
+            elif action["kind"] == "bay":
+                self.aircraft.at[action["callsign"], "bay"] = action["bay"]
+            else:
+                raise ValueError(f"Unknown action kind {action['kind']}")
 
             self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
 
