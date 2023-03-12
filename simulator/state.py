@@ -282,6 +282,15 @@ class State:
             self.time += settings.TIME_STEP_DELTA
             self.tick += 1
 
+    def queue_actions(self, actions: list[dict]):
+        """
+        Add a list of actions to the the queue.
+        """
+
+        for action in actions:
+            time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
+            self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
+
     def _process_action_queue(self, time_delta: datetime.timedelta):
         """
         Find the actions in the queue that are due to be processed.

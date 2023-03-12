@@ -34,5 +34,22 @@ def iterate_forward_one_step(sim):
     )
 
 
+while sim.state.time < (sim_start_time + datetime.timedelta(seconds=5)):
+    iterate_forward_one_step(sim)
+
+print("Sending action")
+sim.action(
+    [
+        {
+            "time": "2019-01-01 00:00:02",
+            "agent": "human",
+            "callsign": "BOW446",
+            "kind": "heading",
+            "subkind": "absolute",
+            "value": 45.0,
+        }
+    ],
+)
+
 while True:
     iterate_forward_one_step(sim)

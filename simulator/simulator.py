@@ -1,7 +1,7 @@
 import datetime
 import json
 import os
-import warnings
+import pandas as pd
 
 from interface import Simulator as SimABC
 
@@ -109,22 +109,7 @@ class Simulator(SimABC):
 
     def action(self, actions: list[dict]) -> bool:
         """
-        Perform an action.
+        Add actions to the queue.
         """
-
-        for action in actions:
-            kind = action["kind"]
-            if kind in [
-                "flight_level",
-                "speed",
-                "heading",
-            ]:
-                callsign = action["callsign"]
-                new_target = action["value"]
-                self.state.aircraft.loc[(callsign, f"target_{kind}")] = new_target
-            else:
-                warnings.warn(
-                    f"Action: {kind} is not yet implemented by this simulator."
-                )
-
+        self.state.queue_actions(actions)
         return True
