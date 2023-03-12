@@ -73,6 +73,7 @@ class State:
         )
         self.actions = pd.DataFrame(  # Actions to be implemented
             {
+                "time": pd.Series(dtype="datetime64[ns]"),  # Time to perform the action
                 "agent": pd.Series(dtype="str"),  # Agent performing the action
                 "callsign": pd.Series(dtype="str"),  # Callsign of the aircraft
                 "kind": pd.Series(dtype="str"),  # Kind of action
@@ -164,7 +165,7 @@ class State:
         """
 
         with open(file_path) as file:
-            actions = pd.read_csv(file, index_col=0, skipinitialspace=True)
+            actions = pd.read_csv(file, skipinitialspace=True)
 
         # Check column headings match
         if set(self.actions.columns) != set(actions.columns):
