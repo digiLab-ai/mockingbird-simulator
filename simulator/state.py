@@ -17,7 +17,7 @@ class State:
 
     geod = pyproj.Geod(ellps="WGS84")
 
-    def __init__(self, time: datetime.datetime, bay_names: list[str]):
+    def __init__(self, time: datetime.datetime):
         """
         Initialise a new simulation.
         """
@@ -27,7 +27,7 @@ class State:
         self.extra_time = datetime.timedelta(
             0
         )  # Difference in time between total calls to evolve, and the state that has been actually ticked forward
-        self.bay_names = bay_names
+        self.bay_names = ["INCOMM", "OUTCOMM"]
         self.fixes = pd.DataFrame(  # Names locations in the simulation
             {
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
@@ -44,6 +44,7 @@ class State:
         )
         self.aircraft = pd.DataFrame(  # Flying machines in the simulation
             {
+                "type": pd.Series(dtype="str"),  # Vortex type of aircraft
                 "agent": pd.Series(dtype="str"),  # Agent controlling the aircraft
                 "bay": pd.Series(dtype="str"),  # Bay to hold the aircraft strip
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
@@ -68,6 +69,7 @@ class State:
                 ),  # Maximum rate of turn (degrees per second)
                 "acceleration": pd.Series(dtype="float"),  # Knots
                 "max_acceleration": pd.Series(dtype="float"),  # Knots
+                "route": pd.Series(dtype="object"),  # List of fixes to route through
             },
             dtype="str",
         )
@@ -89,8 +91,7 @@ class State:
             start_time = datetime.datetime.strptime(
                 meta["start_time"], settings.TIME_FORMAT
             )
-            bay_names = meta["bay_names"]
-        state = State(start_time, bay_names)
+        state = State(start_time)
 
         state._load_fixes(os.path.join(scenario_dir, "fixes.csv"))
         state._load_sectors(os.path.join(scenario_dir, "sectors.json"))
@@ -117,6 +118,7 @@ class State:
                 )
 
         self.fixes = fixes
+        self.bay_names: ["INCOMM"] + fixes.index.tolist() + ["OFFCOMM"]
 
     def _load_sectors(self, file_path: str):
         """

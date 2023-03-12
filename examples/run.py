@@ -4,28 +4,46 @@ import time
 
 from simulator import Simulator
 
-UPDATE_PERIOD = 0.5  # Period between updates (seconds)
-RATE_OF_TIME = 1.0  # Simulated seconds per wall-clock second
 
-categories = Simulator.list_scenario_categories()
-scenarios = Simulator.list_scenarios(categories[0])
+def iterate_forward_one_step(sim, update_period, rate_of_time):
+    """
+    Increment the `sim` forward in time by one `update_period` multiplied by the `rate_of_time`.
+    If the calculation is performed faster than `update_period`, the thread will sleep for the remainder of the time.
+    This means that the simulation will run at a rate of `rate_of_time` times wall-clock time, but may lag behind if the calculation of `sim.evolve` is slow.
+    """
 
-sim = Simulator(categories[0], scenarios[1])
-sim_start_time = sim.state.time
+    # We must time this function so we can run with wall clock time.
+    now = datetime.datetime.now()
+
+    # Display the current state of the simulator.
+    display_state(sim.state)
+
+    # Increment the simulator forward in time.
+    sim.evolve(update_period * rate_of_time)
+
+    # Sleep for the remainder of the step, if possible.
+    remaining_time = update_period - (
+        (datetime.datetime.now() - now).microseconds / (update_period * 1e6)
+    )
+    if remaining_time < 0:
+        print("Warning: Simulator is running slower than wall-clock!")
+    time.sleep(max(0.0, remaining_time))
 
 
 def display_state(state, **kwargs):
     """
-    Display the state of the simulator in a human-readable data tables.
+    Display the `state` of a simulator in a human-readable data tables.
     """
 
+    # Flags for which parts of the state to display. Change default values here.
     time = kwargs.get("time", True)
     fixes = kwargs.get("fixes", False)
     sectors = kwargs.get("sectors", False)
     aircraft = kwargs.get("aircraft", True)
     actions = kwargs.get("actions", True)
     tick = kwargs.get("tick", True)
-    all = kwargs.get("all", False)
+    all = kwargs.get("all", False)  # If True, display the complete state.
+    clear = kwargs.get("clear", True)  # If True, clear the screen before printing.
 
     width = os.get_terminal_size().columns
     buffer = " STATE ".center(width, "=") + "\n"
@@ -55,32 +73,26 @@ def display_state(state, **kwargs):
 
     buffer += "".center(width, "=")
 
+    buffer += f"{sim.state.bay_names}"
+
+    # Clear the screen and print the buffer.
     print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
     print(buffer)
 
 
-def iterate_forward_one_step(sim):
-    """
-    Increment the simulator forward in time by one UPDATE_PERIOD multiplied by the RATE_OF_TIME.
-    If the calculation is performed faster than UPDATE_PERIOD, the thread will sleep for the remainder of the time.
-    This means that the simulation will run at a rate of RATE_OF_TIME times wall-clock time, but may lag behind if the calculation of sim.evolve is slow.
-    """
-    now = datetime.datetime.now()
-    display_state(sim.state)
-    sim.evolve(UPDATE_PERIOD * RATE_OF_TIME)
-    time.sleep(
-        max(
-            0.0,
-            UPDATE_PERIOD
-            - ((datetime.datetime.now() - now).microseconds / (UPDATE_PERIOD * 1e6)),
-        )
-    )
-
-
 if __name__ == "__main__":
+    update_period = 0.5  # Period between updates (seconds)
+    rate_of_time = 1.0  # Simulated seconds per wall-clock second
+
+    categories = Simulator.list_scenario_categories()
+    scenarios = Simulator.list_scenarios(categories[0])
+
+    sim = Simulator(categories[0], scenarios[1])
+    sim_start_time = sim.state.time
+
     # Run for 5 seconds
     while sim.state.time < (sim_start_time + datetime.timedelta(seconds=5)):
-        iterate_forward_one_step(sim)
+        iterate_forward_one_step(sim, update_period, rate_of_time)
 
     # Then send an action from an agent
     print("Sending action")
@@ -99,4 +111,4 @@ if __name__ == "__main__":
 
     # Then keep running until the user presses Ctrl+C
     while True:
-        iterate_forward_one_step(sim)
+        iterate_forward_one_step(sim, update_period, rate_of_time)

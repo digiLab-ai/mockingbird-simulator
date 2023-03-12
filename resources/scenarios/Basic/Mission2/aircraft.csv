@@ -1,4 +1,4 @@
-      , agent,     bay,      lat,     lon,   flight_level, target_flight_level, heading, target_heading, speed, target_speed, rise, max_rise_rate, turn, max_turn_rate, acceleration, max_acceleration
-BAW123, human,  INCOMM,  44.9220, -3.4730,          100.0,               100.0,     0.0,            0.0, 200.0,        200.0,  0.0,           1.0,  0.0,           1.0,          0.0,             20.0
-FLY456, AI007,  INCOMM,  44.9270, -3.4790,          120.0,               120.0,     0.0,            0.0, 250.0,        250.0,  0.0,           1.0,  0.0,           1.0,          0.0,             20.0
-NAX123, human,  INCOMM,  51.4600, 0.46430,          100.0,               100.0,   100.0,          100.0, 270.0,        270.0,  0.0,           1.0,  0.0,           1.0,          0.0,             20.0
+      ,   type, agent,     bay,      lat,     lon,   flight_level, target_flight_level, heading, target_heading, speed, target_speed, rise, max_rise_rate, turn, max_turn_rate, acceleration, max_acceleration,                  route
+BAW123, medium, human,  INCOMM,  44.9220, -3.4730,          100.0,               100.0,     0.0,            0.0, 200.0,        200.0,  0.0,           1.0,  0.0,           1.0,          0.0,             20.0, "['a', 'b', 'c', 'd']"
+FLY456,  light, AI007,  INCOMM,  44.9270, -3.4790,          120.0,               120.0,     0.0,            0.0, 250.0,        250.0,  0.0,           1.0,  0.0,           1.0,          0.0,             20.0, "['b', 'c', 'd', 'e']"
+NAX123,  heavy, human,  INCOMM,  51.4600, 0.46430,          100.0,               100.0,   100.0,          100.0, 270.0,        270.0,  0.0,           1.0,  0.0,           1.0,          0.0,             20.0, "['a', 'b', 'c', 'd']"
