@@ -74,7 +74,8 @@ def display_state(state, **kwargs):
     buffer += "".center(width, "=")
 
     # Clear the screen and print the buffer.
-    print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
+    if clear:
+        print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
     print(buffer)
 
 

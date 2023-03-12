@@ -100,6 +100,10 @@ class Simulator(SimABC):
 
         return {
             "time": self.state.time,
+            "actions": [
+                {"id": i, "time": time} | self.state.actions.loc[time].to_dict()
+                for i, time in enumerate(self.state.actions.index)
+            ],
             "aircraft": [
                 {"id": i, "callsign": callsign}
                 | self.state.aircraft.loc[callsign].to_dict()
