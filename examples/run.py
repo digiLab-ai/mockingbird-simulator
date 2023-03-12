@@ -73,8 +73,6 @@ def display_state(state, **kwargs):
 
     buffer += "".center(width, "=")
 
-    buffer += f"{sim.state.bay_names}"
-
     # Clear the screen and print the buffer.
     print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
     print(buffer)

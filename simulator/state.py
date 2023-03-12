@@ -118,7 +118,7 @@ class State:
                 )
 
         self.fixes = fixes
-        self.bay_names: ["INCOMM"] + fixes.index.tolist() + ["OFFCOMM"]
+        self.bay_names = ["INCOMM"] + fixes.index.tolist() + ["OFFCOMM"]
 
     def _load_sectors(self, file_path: str):
         """
