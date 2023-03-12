@@ -253,11 +253,14 @@ class State:
 
         self.aircraft.drop(callsign, inplace=True)
 
-    def action(self, action: dict):
+    def queue_actions(self, actions: list[dict]):
         """
-        Add an action to the queue.
+        Add a list of actions to the the queue.
         """
-        pass
+
+        for action in actions:
+            time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
+            self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
 
     def evolve(self, evolve_delta: datetime.timedelta):
         """
@@ -281,15 +284,6 @@ class State:
             self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
             self.time += settings.TIME_STEP_DELTA
             self.tick += 1
-
-    def queue_actions(self, actions: list[dict]):
-        """
-        Add a list of actions to the the queue.
-        """
-
-        for action in actions:
-            time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
-            self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
 
     def _process_action_queue(self, time_delta: datetime.timedelta):
         """
