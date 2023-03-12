@@ -85,7 +85,7 @@ if __name__ == "__main__":
     categories = Simulator.list_scenario_categories()
     scenarios = Simulator.list_scenarios(categories[0])
 
-    sim = Simulator(categories[0], scenarios[1])
+    sim = Simulator(categories[0], scenarios[0])
     sim_start_time = sim.state.time
 
     # Run for 5 seconds
