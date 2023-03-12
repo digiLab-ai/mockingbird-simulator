@@ -10,7 +10,7 @@ RATE_OF_TIME = 1.0  # Simulated seconds per wall-clock second
 categories = Simulator.list_scenario_categories()
 scenarios = Simulator.list_scenarios(categories[0])
 
-sim = Simulator(categories[0], scenarios[0])
+sim = Simulator(categories[0], scenarios[1])
 sim_start_time = sim.state.time
 
 
@@ -43,7 +43,7 @@ sim.action(
         {
             "time": "2019-01-01 00:00:10",
             "agent": "human",
-            "callsign": "BOW446",
+            "callsign": "FLY456",
             "kind": "heading",
             "subkind": "absolute",
             "value": 45.0,
