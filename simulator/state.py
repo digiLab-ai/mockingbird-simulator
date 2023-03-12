@@ -258,8 +258,6 @@ class State:
         Evolve the altitude (flight_level) of the aircraft forward in time.
         """
 
-        dt = time_delta.total_seconds()
-
         def move_aircraft_vertically_helper(aircraft):
             aircraft["rise"] = (
                 calc_sign(
@@ -271,14 +269,13 @@ class State:
 
         self.aircraft = self.aircraft.apply(move_aircraft_vertically_helper, axis=1)
 
+        dt = time_delta.total_seconds()
         self.aircraft["flight_level"] += self.aircraft["rise"] * dt
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """
         Evolve the turn (heading) of the aircraft forward in time.
         """
-
-        dt = time_delta.total_seconds()
 
         def rotate_aircraft_helper(aircraft):
             aircraft["turn"] = (
@@ -289,6 +286,7 @@ class State:
 
         self.aircraft = self.aircraft.apply(rotate_aircraft_helper, axis=1)
 
+        dt = time_delta.total_seconds()
         self.aircraft["heading"] += self.aircraft["turn"] * dt
         self.aircraft["heading"] %= 360.0
 
