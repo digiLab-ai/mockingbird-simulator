@@ -173,32 +173,6 @@ class State:
 
         self.actions = actions
 
-    def __str__(self):
-        """
-        Print the state.
-        """
-
-        width = 72
-        buffer = " STATE ".center(width, "=") + "\n"
-        buffer += f"{self.time}".center(width, " ") + "\n"
-
-        # buffer += " fixes ".center(width, "-") + "\n"
-        # buffer += f"{self.fixes}\n"
-
-        # buffer += " sectors ".center(width, "-") + "\n"
-        # buffer += f"{self.sectors}\n"
-
-        buffer += " actions ".center(width, "-") + "\n"
-        buffer += f"{self.actions}\n"
-
-        buffer += " aircraft ".center(width, "-") + "\n"
-        buffer += f"{self.aircraft}\n"
-
-        buffer += "".center(width, "-") + "\n"
-        buffer += f"{self.tick}".center(width, " ") + "\n"
-        buffer += "".center(width, "=")
-        return buffer
-
     def add_aircraft(
         self,
         callsign: str,
