@@ -31,16 +31,17 @@ def iterate_forward_one_step(sim, update_period, rate_of_time):
 
 
 if __name__ == "__main__":
+    # Set the parameters of the simulation
     update_period = 0.5  # Period between updates (seconds)
     rate_of_time = 1.0  # Simulated seconds per wall-clock second
 
+    # Load the first scenario
     categories = Simulator.list_scenario_categories()
     scenarios = Simulator.list_scenarios(categories[0])
-
     sim = Simulator(categories[0], scenarios[0])
-    sim_start_time = sim.state.time
 
     # Run for 5 seconds
+    sim_start_time = sim.state.time
     while sim.state.time < (sim_start_time + datetime.timedelta(seconds=5)):
         iterate_forward_one_step(sim, update_period, rate_of_time)
 
