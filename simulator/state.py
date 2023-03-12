@@ -71,6 +71,15 @@ class State:
             },
             dtype="str",
         )
+        self.actions = pd.DataFrame(  # Actions to be implemented
+            {
+                "agent": pd.Series(dtype="str"),  # Agent performing the action
+                "callsign": pd.Series(dtype="str"),  # Callsign of the aircraft
+                "kind": pd.Series(dtype="str"),  # Kind of action
+                "subkind": pd.Series(dtype="str"),  # Subkind of action
+                "value": pd.Series(dtype="str"),  # Value of the action
+            },
+        )
 
     @staticmethod
     def load(scenario_dir: str):
@@ -91,6 +100,7 @@ class State:
         state._load_fixes(os.path.join(scenario_dir, "fixes.csv"))
         state._load_sectors(os.path.join(scenario_dir, "sectors.json"))
         state._load_aircraft(os.path.join(scenario_dir, "aircraft.csv"))
+        state._load_actions(os.path.join(scenario_dir, "actions.csv"))
 
         return state
 
@@ -107,7 +117,9 @@ class State:
             if set(self.fixes.columns) != set(fixes.columns):
                 print(f"Expected headings: {self.fixes.columns}")
                 print(f"Given headings: {fixes.columns}")
-                raise ValueError(f"Column headings differ to those expected")
+                raise ValueError(
+                    f"Column headings for fixes dataframe differ to those expected"
+                )
 
         self.fixes = fixes
 
@@ -139,9 +151,30 @@ class State:
             if set(self.aircraft.columns) != set(aircraft.columns):
                 print(f"Expected headings: {self.aircraft.columns}")
                 print(f"Given headings: {aircraft.columns}")
-                raise ValueError(f"Column headings differ to those expected")
+                raise ValueError(
+                    f"Column headings for aircraft dataframe differ to those expected"
+                )
 
         self.aircraft = aircraft
+
+    def _load_actions(self, file_path: str):
+        """
+        Load action state from a .csv file.
+        Note this will replace the current action state.
+        """
+
+        with open(file_path) as file:
+            actions = pd.read_csv(file, index_col=0, skipinitialspace=True)
+
+        # Check column headings match
+        if set(self.actions.columns) != set(actions.columns):
+            print(f"Expected headings: {self.actions.columns}")
+            print(f"Given headings: {actions.columns}")
+            raise ValueError(
+                f"Column headings for actions dataframe differ to those expected"
+            )
+
+        self.actions = actions
 
     def __str__(self):
         """
@@ -157,6 +190,9 @@ class State:
 
         # buffer += " sectors ".center(width, "-") + "\n"
         # buffer += f"{self.sectors}\n"
+
+        buffer += " actions ".center(width, "-") + "\n"
+        buffer += f"{self.actions}\n"
 
         buffer += " aircraft ".center(width, "-") + "\n"
         buffer += f"{self.aircraft}\n"
@@ -219,6 +255,12 @@ class State:
             raise ValueError(f"Aircraft {callsign} does not exist")
 
         self.aircraft.drop(callsign, inplace=True)
+
+    def action(self, action: dict):
+        """
+        Add an action to the queue.
+        """
+        pass
 
     def evolve(self, evolve_delta: datetime.timedelta):
         """
