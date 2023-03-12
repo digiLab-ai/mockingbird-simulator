@@ -145,7 +145,7 @@ class State:
 
         width = 72
         buffer = " STATE ".center(width, "=") + "\n"
-        buffer += f"{self.time} - t{self.tick}".center(width, " ") + "\n"
+        buffer += f"{self.time}".center(width, " ") + "\n"
 
         # buffer += " fixes ".center(width, "-") + "\n"
         # buffer += f"{self.fixes}\n"
@@ -156,6 +156,8 @@ class State:
         buffer += " aircraft ".center(width, "-") + "\n"
         buffer += f"{self.aircraft}\n"
 
+        buffer += "".center(width, "-") + "\n"
+        buffer += f"{self.tick}".center(width, " ") + "\n"
         buffer += "".center(width, "=")
         return buffer
 
@@ -292,7 +294,7 @@ class State:
 
 def rotate_aircraft(aircraft, dt):
     aircraft["heading"] += (
-        calc_sign(aircraft["heading"], aircraft["target_heading"], 1.0)
+        calc_sign(aircraft["heading"], aircraft["target_heading"], 10.0)
         * aircraft["max_turn_rate"]
         * dt
     )
