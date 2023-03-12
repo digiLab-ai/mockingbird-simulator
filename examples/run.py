@@ -45,8 +45,14 @@ sim.action(
             "kind": "heading",
             "subkind": "absolute",
             "value": 45.0,
-        }
-    ]
+        },
+        {
+            "callsign": "BAW123",
+            "kind": "flight_level",
+            "subkind": "absolute",
+            "value": 140.0,
+        },
+    ],
 )
 
 while True:

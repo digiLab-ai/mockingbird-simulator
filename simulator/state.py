@@ -59,6 +59,9 @@ class State:
                 "rise": pd.Series(
                     dtype="float"
                 ),  # Flight levels per second (absolute value)
+                "max_rise_rate": pd.Series(
+                    dtype="float"
+                ),  # Maximum rate of rise and fall (flight_levels per second)
                 "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
                 "max_turn_rate": pd.Series(
                     dtype="float"
@@ -174,6 +177,7 @@ class State:
         speed: float,
         target_speed: float,
         rise: float,
+        max_rise_rate: float,
         turn: float,
         max_turn_rate: float,
     ):
@@ -195,6 +199,7 @@ class State:
             speed,
             target_speed,
             rise,
+            max_rise_rate,
             turn,
             max_turn_rate,
         ]
@@ -248,37 +253,59 @@ class State:
         self.aircraft["lat"] = proj_lat
         self.aircraft["lon"] = proj_lon
 
+    # def _move_aircraft_vertically(self, time_delta: datetime.timedelta):
+    #     """
+    #     Evolve the vertical position (flight_level) of the aircraft.
+    #     """
+
+    #     dt = time_delta.total_seconds()
+
+    #     self.aircraft["flight_level"] += self.aircraft["rise"] * dt
+    #     # increase the altitude based on rise (absolute value speed) * change in time
+
+    #     for i in range((len(self.aircraft.index))):
+    #         # iterate through each aircraft to change each altitude to the target
+    #         flight_level_delta = (
+    #             self.aircraft["target_flight_level"][i]
+    #             - self.aircraft["flight_level"][i]
+    #         )
+    #         # difference between the target altitude and the altitude flight is currently at
+    #         if (
+    #             flight_level_delta == 1
+    #             or flight_level_delta == 0
+    #             or flight_level_delta == 2
+    #         ):
+    #             # if the difference between the target and current altitude is either 0, 1, 2 flight levels (due to odd/even rise), execute:
+    #             callsign = self.aircraft.index[i]
+    #             self.aircraft.loc[(callsign, "rise")] = 0.0
+    #             # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
+    #             # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy
+    #         elif flight_level_delta <= -1:
+    #             callsign = self.aircraft.index[i]
+    #             self.aircraft.loc[(callsign, "rise")] = 0.0
+    #         # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
+
     def _move_aircraft_vertically(self, time_delta: datetime.timedelta):
         """
-        Evolve the vertical position (flight_level) of the aircraft.
+        Evolve the altitude (flight_level) of the aircraft.
         """
 
         dt = time_delta.total_seconds()
-
         self.aircraft["flight_level"] += self.aircraft["rise"] * dt
-        # increase the altitude based on rise (absolute value speed) * change in time
 
-        for i in range((len(self.aircraft.index))):
-            # iterate through each aircraft to change each altitude to the target
-            flight_level_delta = (
-                self.aircraft["target_flight_level"][i]
-                - self.aircraft["flight_level"][i]
+        def move_aircraft_vertically_helper(aircraft, dt):
+            aircraft["flight_level"] += (
+                calc_sign(
+                    aircraft["flight_level"], aircraft["target_flight_level"], 10.0
+                )
+                * aircraft["max_rise_rate"]
+                * dt
             )
-            # difference between the target altitude and the altitude flight is currently at
-            if (
-                flight_level_delta == 1
-                or flight_level_delta == 0
-                or flight_level_delta == 2
-            ):
-                # if the difference between the target and current altitude is either 0, 1, 2 flight levels (due to odd/even rise), execute:
-                callsign = self.aircraft.index[i]
-                self.aircraft.loc[(callsign, "rise")] = 0.0
-                # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
-                # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy
-            elif flight_level_delta <= -1:
-                callsign = self.aircraft.index[i]
-                self.aircraft.loc[(callsign, "rise")] = 0.0
-            # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
+            return pd.Series(aircraft)
+
+        self.aircraft = self.aircraft.apply(
+            lambda a: move_aircraft_vertically_helper(a, dt), axis=1
+        )
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """
@@ -286,22 +313,26 @@ class State:
         """
 
         dt = time_delta.total_seconds()
+
+        def rotate_aircraft_helper(aircraft, dt):
+            aircraft["turn"] = (
+                calc_sign(aircraft["heading"], aircraft["target_heading"], 5.0)
+                * aircraft["max_turn_rate"]
+            )
+            return pd.Series(aircraft)
+
+        self.aircraft = self.aircraft.apply(
+            lambda a: rotate_aircraft_helper(a, dt), axis=1
+        )
+
         self.aircraft["heading"] += self.aircraft["turn"] * dt
         self.aircraft["heading"] %= 360.0
 
-        self.aircraft = self.aircraft.apply(lambda a: rotate_aircraft(a, dt), axis=1)
+
+def calc_sign(x, target_x, length_scale):
+    n = (target_x - x) / length_scale
+    return clamp(n, -1.0, 1.0)
 
 
-def rotate_aircraft(aircraft, dt):
-    aircraft["heading"] += (
-        calc_sign(aircraft["heading"], aircraft["target_heading"], 10.0)
-        * aircraft["max_turn_rate"]
-        * dt
-    )
-    return pd.Series(aircraft)
-
-
-def calc_sign(x, target_x, max_delta):
-    n = (target_x - x) / max_delta
-    z = max(min(n, 1), -1)
-    return z
+def clamp(num, min_value, max_value):
+    return max(min(num, max_value), min_value)
