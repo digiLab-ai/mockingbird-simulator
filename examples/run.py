@@ -34,32 +34,5 @@ def iterate_forward_one_step(sim):
     )
 
 
-while sim.state.time < (sim_start_time + datetime.timedelta(seconds=5)):
-    iterate_forward_one_step(sim)
-
-print("Sending action")
-sim.action(
-    [
-        {
-            "callsign": "BAW123",
-            "kind": "heading",
-            "subkind": "absolute",
-            "value": 45.0,
-        },
-        {
-            "callsign": "FLY456",
-            "kind": "flight_level",
-            "subkind": "absolute",
-            "value": 140.0,
-        },
-        {
-            "callsign": "BOW446",
-            "kind": "speed",
-            "subkind": "absolute",
-            "value": 300.0,
-        },
-    ],
-)
-
 while True:
     iterate_forward_one_step(sim)

@@ -1,2 +1,3 @@
                time, agent, callsign,         kind,  subkind, value
-2019-01-01 00:00:00, human,   NAX123, flight_level, absolute,   140
+2019-01-01 00:00:05, human,   BAW123, flight_level, absolute,   140
+2019-01-01 00:00:10, human,   NAX123,      heading, absolute,    45

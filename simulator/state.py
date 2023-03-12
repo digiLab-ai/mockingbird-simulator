@@ -71,15 +71,9 @@ class State:
             },
             dtype="str",
         )
-        self.actions = pd.DataFrame(  # Actions to be implemented
-            {
-                "time": pd.Series(dtype="datetime64[ns]"),  # Time to perform the action
-                "agent": pd.Series(dtype="str"),  # Agent performing the action
-                "callsign": pd.Series(dtype="str"),  # Callsign of the aircraft
-                "kind": pd.Series(dtype="str"),  # Kind of action
-                "subkind": pd.Series(dtype="str"),  # Subkind of action
-                "value": pd.Series(dtype="str"),  # Value of the action
-            },
+        self.actions = pd.DataFrame(
+            columns=["time", "agent", "callsign", "kind", "subkind", "value"],
+            index=pd.to_datetime([]),
         )
 
     @staticmethod
@@ -174,6 +168,8 @@ class State:
             raise ValueError(
                 f"Column headings for actions dataframe differ to those expected"
             )
+        actions["time"] = pd.to_datetime(actions["time"], format=settings.TIME_FORMAT)
+        actions = actions.set_index("time")
 
         self.actions = actions
 
@@ -278,12 +274,45 @@ class State:
         self.extra_time = (num_steps * settings.TIME_STEP_DELTA) - evolve_delta
 
         for _ in range(num_steps):
+            self._process_action_queue(settings.TIME_STEP_DELTA)
             self._rotate_aircraft(settings.TIME_STEP_DELTA)
             self._accelerate_aircraft(settings.TIME_STEP_DELTA)
             self._move_aircraft_laterally(settings.TIME_STEP_DELTA)
             self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
             self.time += settings.TIME_STEP_DELTA
             self.tick += 1
+
+    def _process_action_queue(self, time_delta: datetime.timedelta):
+        """
+        Find the actions in the queue that are due to be processed.
+        """
+
+        actions = self.actions.loc[
+            (self.actions.index >= self.time)
+            & (self.actions.index < (self.time + settings.TIME_STEP_DELTA))
+        ]
+
+        for _, action in actions.iterrows():
+            self._handle_action(action)
+
+    def _handle_action(self, action: dict):
+        """
+        Perform the given action.
+        """
+
+        kind = action["kind"]
+        if kind in [
+            "flight_level",
+            "speed",
+            "heading",
+        ]:
+            callsign = action["callsign"]
+            new_target = action["value"]
+            self.aircraft.loc[(callsign, f"target_{kind}")] = new_target
+        else:
+            raise ValueError(
+                f"Action: {kind} is not yet implemented by this simulator."
+            )
 
     def _accelerate_aircraft(self, time_delta: datetime.timedelta):
         """
