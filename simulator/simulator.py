@@ -99,9 +99,9 @@ class Simulator(SimABC):
         """
 
         return {
-            "time": self.state.time,
+            "time": self.state.time.isoformat(sep=" "),
             "actions": [
-                {"id": i, "time": time} | self.state.actions.loc[time].to_dict()
+                {"id": i, "time": f"{time}"} | self.state.actions.loc[time].to_dict()
                 for i, time in enumerate(self.state.actions.index)
             ],
             "aircraft": [
