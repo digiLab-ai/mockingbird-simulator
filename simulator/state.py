@@ -66,6 +66,8 @@ class State:
                 "max_turn_rate": pd.Series(
                     dtype="float"
                 ),  # Maximum rate of turn (degrees per second)
+                "acceleration": pd.Series(dtype="float"),  # Knots
+                "max_acceleration": pd.Series(dtype="float"),  # Knots
             },
             dtype="str",
         )
@@ -180,6 +182,8 @@ class State:
         max_rise_rate: float,
         turn: float,
         max_turn_rate: float,
+        acceleration: float,
+        max_acceleration: float,
     ):
         """
         Add an aircraft to the simulation.
@@ -202,6 +206,8 @@ class State:
             max_rise_rate,
             turn,
             max_turn_rate,
+            acceleration,
+            max_acceleration,
         ]
 
     def remove_aircraft(self, callsign: str):
@@ -230,10 +236,31 @@ class State:
 
         for _ in range(num_steps):
             self._rotate_aircraft(settings.TIME_STEP_DELTA)
+            self._accelerate_aircraft(settings.TIME_STEP_DELTA)
             self._move_aircraft_laterally(settings.TIME_STEP_DELTA)
             self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
             self.time += settings.TIME_STEP_DELTA
             self.tick += 1
+
+    def _accelerate_aircraft(self, time_delta: datetime.timedelta):
+        """
+        Evolve the speed of the aircraft.
+        """
+
+        dt = time_delta.total_seconds()
+
+        def accelerate_aircraft_helper(aircraft):
+            aircraft["acceleration"] = (
+                calc_sign(aircraft["speed"], aircraft["target_speed"], 10.0)
+                * aircraft["max_acceleration"]
+            )
+            return pd.Series(aircraft)
+
+        self.aircraft = self.aircraft.apply(accelerate_aircraft_helper, axis=1)
+
+        self.aircraft["speed"] += (
+            self.aircraft["acceleration"] * time_delta.total_seconds()
+        )
 
     def _move_aircraft_laterally(self, time_delta: datetime.timedelta):
         """
@@ -241,7 +268,6 @@ class State:
         """
 
         dt = time_delta.total_seconds()
-
         distances = self.aircraft["speed"] * (1852.0 / 3600.0) * dt
         proj_lon, proj_lat, _ = self.geod.fwd(
             self.aircraft["lon"],
