@@ -78,6 +78,54 @@ class State:
             index=pd.to_datetime([]),
         )
 
+    def display(self, **kwargs):
+        """
+        Display the `state` of a simulator in a human-readable data tables.
+        """
+
+        # Flags for which parts of the state to display. Change default values here.
+        time = kwargs.get("time", True)
+        fixes = kwargs.get("fixes", False)
+        sectors = kwargs.get("sectors", False)
+        aircraft = kwargs.get("aircraft", True)
+        actions = kwargs.get("actions", True)
+        tick = kwargs.get("tick", True)
+        all = kwargs.get("all", False)  # If True, display the complete state.
+        clear = kwargs.get("clear", True)  # If True, clear the screen before printing.
+
+        width = os.get_terminal_size().columns
+        buffer = " STATE ".center(width, "=") + "\n"
+
+        if time or all:
+            buffer += f"{self.time}".center(width, " ") + "\n"
+
+        if fixes or all:
+            buffer += " fixes ".center(width, "-") + "\n"
+            buffer += f"{self.fixes}\n"
+
+        if sectors or all:
+            buffer += " sectors ".center(width, "-") + "\n"
+            buffer += f"{self.sectors}\n"
+
+        if actions or all:
+            buffer += " actions ".center(width, "-") + "\n"
+            buffer += f"{self.actions}\n"
+
+        if aircraft or all:
+            buffer += " aircraft ".center(width, "-") + "\n"
+            buffer += f"{self.aircraft}\n"
+
+        if tick or all:
+            buffer += "".center(width, "-") + "\n"
+            buffer += f"{self.tick}".center(width, " ") + "\n"
+
+        buffer += "".center(width, "=")
+
+        # Clear the screen and print the buffer.
+        if clear:
+            print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
+        print(buffer)
+
     @staticmethod
     def load(scenario_dir: str):
         """

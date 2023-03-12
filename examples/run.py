@@ -16,7 +16,7 @@ def iterate_forward_one_step(sim, update_period, rate_of_time):
     now = datetime.datetime.now()
 
     # Display the current state of the simulator.
-    display_state(sim.state)
+    sim.state.display(clear=True)
 
     # Increment the simulator forward in time.
     sim.evolve(update_period * rate_of_time)
@@ -28,55 +28,6 @@ def iterate_forward_one_step(sim, update_period, rate_of_time):
     if remaining_time < 0:
         print("Warning: Simulator is running slower than wall-clock!")
     time.sleep(max(0.0, remaining_time))
-
-
-def display_state(state, **kwargs):
-    """
-    Display the `state` of a simulator in a human-readable data tables.
-    """
-
-    # Flags for which parts of the state to display. Change default values here.
-    time = kwargs.get("time", True)
-    fixes = kwargs.get("fixes", False)
-    sectors = kwargs.get("sectors", False)
-    aircraft = kwargs.get("aircraft", True)
-    actions = kwargs.get("actions", True)
-    tick = kwargs.get("tick", True)
-    all = kwargs.get("all", False)  # If True, display the complete state.
-    clear = kwargs.get("clear", True)  # If True, clear the screen before printing.
-
-    width = os.get_terminal_size().columns
-    buffer = " STATE ".center(width, "=") + "\n"
-
-    if time or all:
-        buffer += f"{state.time}".center(width, " ") + "\n"
-
-    if fixes or all:
-        buffer += " fixes ".center(width, "-") + "\n"
-        buffer += f"{state.fixes}\n"
-
-    if sectors or all:
-        buffer += " sectors ".center(width, "-") + "\n"
-        buffer += f"{state.sectors}\n"
-
-    if actions or all:
-        buffer += " actions ".center(width, "-") + "\n"
-        buffer += f"{state.actions}\n"
-
-    if aircraft or all:
-        buffer += " aircraft ".center(width, "-") + "\n"
-        buffer += f"{state.aircraft}\n"
-
-    if tick or all:
-        buffer += "".center(width, "-") + "\n"
-        buffer += f"{state.tick}".center(width, " ") + "\n"
-
-    buffer += "".center(width, "=")
-
-    # Clear the screen and print the buffer.
-    if clear:
-        print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
-    print(buffer)
 
 
 if __name__ == "__main__":
