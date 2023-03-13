@@ -287,7 +287,7 @@ class State:
             if action["kind"] in ["flight_level", "heading", "speed"]:
                 action["value"] = float(action["value"])
             elif action["kind"] == "bay":
-                self.aircraft.at[action["callsign"], "bay"] = action["bay"]
+                self.aircraft.at[action["callsign"], "bay"] = action["value"]
             else:
                 raise ValueError(f"Unknown action kind {action['kind']}")
 
