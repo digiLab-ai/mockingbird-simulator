@@ -283,14 +283,15 @@ class State:
         """
 
         for action in actions:
+            # Remove time from action and convert to datetime for indexing
             time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
-            if action["kind"] in ["flight_level", "heading", "speed"]:
-                action["value"] = float(action["value"])
-            elif action["kind"] == "bay":
-                self.aircraft.at[action["callsign"], "bay"] = action["value"]
-            else:
-                raise ValueError(f"Unknown action kind {action['kind']}")
 
+            # Convert values to correct types
+            if action["kind"] in ["flight_level", "heading", "speed"]:
+                if action["subkind"] == "absolute":
+                    action["value"] = float(action["value"])
+
+            # Add action to queue
             self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
 
     def evolve(self, evolve_delta: datetime.timedelta):
@@ -335,18 +336,36 @@ class State:
         """
 
         kind = action["kind"]
+        subkind = action["subkind"]
+        callsign = action["callsign"]
+        value = action["value"]
+
         if kind in [
             "flight_level",
             "speed",
             "heading",
         ]:
-            callsign = action["callsign"]
-            new_target = action["value"]
-            self.aircraft.loc[(callsign, f"target_{kind}")] = new_target
-        else:
-            raise ValueError(
-                f"Action: {kind} is not yet implemented by this simulator."
-            )
+            if subkind == "absolute":
+                new_target = float(value)
+                self.aircraft.loc[(callsign, f"target_{kind}")] = new_target
+                return
+            elif subkind == "relative":
+                new_target = self.aircraft.loc[(callsign, f"target_{kind}")] + float(
+                    value
+                )
+                if kind == "bearing" and new_target < 0.0:
+                    new_target += 360.0
+                self.aircraft.loc[(callsign, f"target_{kind}")] = new_target
+                return
+
+        if kind == "bay":
+            if subkind == "move":
+                self.aircraft.loc[(callsign, "bay")] = action["value"]
+                return
+
+        raise ValueError(
+            f"Don't know how to handle {action['kind']}-{action['subkind']} action."
+        )
 
     def _accelerate_aircraft(self, time_delta: datetime.timedelta):
         """
