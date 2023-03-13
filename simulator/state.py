@@ -1,14 +1,13 @@
 import datetime
 import json
+import numpy as np
 import os
 import pandas as pd
 import pathlib
 import pyproj
 
+from . import settings
 from .airspace import Airspace
-
-
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 class State:
@@ -18,13 +17,17 @@ class State:
 
     geod = pyproj.Geod(ellps="WGS84")
 
-    def __init__(self, time: datetime.datetime, bay_names: list[str]):
+    def __init__(self, time: datetime.datetime):
         """
         Initialise a new simulation.
         """
 
         self.time = time  # Current time
-        self.bay_names = bay_names
+        self.tick = 0  # Number of times the simulation has been ticked forward one settings.TIME_STEP_DELTA
+        self.extra_time = datetime.timedelta(
+            0
+        )  # Difference in time between total calls to evolve, and the state that has been actually ticked forward
+        self.bay_names = ["INCOMM", "OUTCOMM"]
         self.fixes = pd.DataFrame(  # Names locations in the simulation
             {
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
@@ -41,21 +44,87 @@ class State:
         )
         self.aircraft = pd.DataFrame(  # Flying machines in the simulation
             {
-                "agent": pd.Series(dtype="str"),             # Agent controlling the aircraft
-                "bay": pd.Series(dtype="str"),               # Bay to hold the aircraft strip
-                "lat": pd.Series(dtype="float"),             # Degrees North/South
-                "lon": pd.Series(dtype="float"),             # Degrees East/West
-                "alt": pd.Series(dtype="float"),             # Flight level
-                "target_alt": pd.Series(dtype="float"),      # Target altitude
-                "heading": pd.Series(dtype="float"),         # Degrees clockwise from North
-                "target_heading": pd.Series(dtype="float"),  # Degrees clockwise from North
-                "speed": pd.Series(dtype="float"),           # Knots
-                "target_speed": pd.Series(dtype="float"),    # Knots
-                "rise": pd.Series(dtype="float"),            # Flight levels per second (absolute value)
-                "turn": pd.Series(dtype="float"),            # Degrees clockwise per second
+                "type": pd.Series(dtype="str"),  # Vortex type of aircraft
+                "agent": pd.Series(dtype="str"),  # Agent controlling the aircraft
+                "bay": pd.Series(dtype="str"),  # Bay to hold the aircraft strip
+                "lat": pd.Series(dtype="float"),  # Degrees North/South
+                "lon": pd.Series(dtype="float"),  # Degrees East/West
+                "flight_level": pd.Series(dtype="float"),  # Flight level
+                "target_flight_level": pd.Series(dtype="float"),  # Target flight level
+                "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
+                "target_heading": pd.Series(
+                    dtype="float"
+                ),  # Degrees clockwise from North
+                "speed": pd.Series(dtype="float"),  # Knots
+                "target_speed": pd.Series(dtype="float"),  # Knots
+                "rise": pd.Series(
+                    dtype="float"
+                ),  # Flight levels per second (absolute value)
+                "max_rise_rate": pd.Series(
+                    dtype="float"
+                ),  # Maximum rate of rise and fall (flight_levels per second)
+                "turn": pd.Series(dtype="float"),  # Degrees clockwise per second
+                "max_turn_rate": pd.Series(
+                    dtype="float"
+                ),  # Maximum rate of turn (degrees per second)
+                "acceleration": pd.Series(dtype="float"),  # Knots
+                "max_acceleration": pd.Series(dtype="float"),  # Knots
+                "route": pd.Series(dtype="object"),  # List of fixes to route through
             },
             dtype="str",
         )
+        self.actions = pd.DataFrame(
+            columns=["time", "agent", "callsign", "kind", "subkind", "value"],
+            index=pd.to_datetime([]),
+        )
+
+    def display(self, **kwargs):
+        """
+        Display the `state` of a simulator in a human-readable data tables.
+        """
+
+        # Flags for which parts of the state to display. Change default values here.
+        time = kwargs.get("time", True)
+        fixes = kwargs.get("fixes", False)
+        sectors = kwargs.get("sectors", False)
+        aircraft = kwargs.get("aircraft", True)
+        actions = kwargs.get("actions", True)
+        tick = kwargs.get("tick", True)
+        all = kwargs.get("all", False)  # If True, display the complete state.
+        clear = kwargs.get("clear", True)  # If True, clear the screen before printing.
+
+        width = os.get_terminal_size().columns
+        buffer = " STATE ".center(width, "=") + "\n"
+
+        if time or all:
+            buffer += f"{self.time}".center(width, " ") + "\n"
+
+        if fixes or all:
+            buffer += " fixes ".center(width, "-") + "\n"
+            buffer += f"{self.fixes}\n"
+
+        if sectors or all:
+            buffer += " sectors ".center(width, "-") + "\n"
+            buffer += f"{self.sectors}\n"
+
+        if actions or all:
+            buffer += " actions ".center(width, "-") + "\n"
+            buffer += f"{self.actions}\n"
+
+        if aircraft or all:
+            buffer += " aircraft ".center(width, "-") + "\n"
+            buffer += f"{self.aircraft}\n"
+
+        if tick or all:
+            buffer += "".center(width, "-") + "\n"
+            buffer += f"{self.tick}".center(width, " ") + "\n"
+
+        buffer += "".center(width, "=")
+
+        # Clear the screen and print the buffer.
+        if clear:
+            print("\n" * max(os.get_terminal_size().lines - buffer.count("\n"), 0))
+        print(buffer)
 
     @staticmethod
     def load(scenario_dir: str):
@@ -67,13 +136,15 @@ class State:
 
         with open(os.path.join(scenario_dir, "meta.json")) as file:
             meta = json.load(file)
-            start_time = datetime.datetime.strptime(meta["start_time"], TIME_FORMAT)
-            bay_names = meta["bay_names"]
-        state = State(start_time, bay_names)
+            start_time = datetime.datetime.strptime(
+                meta["start_time"], settings.TIME_FORMAT
+            )
+        state = State(start_time)
 
         state._load_fixes(os.path.join(scenario_dir, "fixes.csv"))
         state._load_sectors(os.path.join(scenario_dir, "sectors.json"))
         state._load_aircraft(os.path.join(scenario_dir, "aircraft.csv"))
+        state._load_actions(os.path.join(scenario_dir, "actions.csv"))
 
         return state
 
@@ -90,9 +161,12 @@ class State:
             if set(self.fixes.columns) != set(fixes.columns):
                 print(f"Expected headings: {self.fixes.columns}")
                 print(f"Given headings: {fixes.columns}")
-                raise ValueError(f"Column headings differ to those expected")
+                raise ValueError(
+                    f"Column headings for fixes dataframe differ to those expected"
+                )
 
         self.fixes = fixes
+        self.bay_names = ["INCOMM"] + fixes.index.tolist() + ["OFFCOMM"]
 
     def _load_sectors(self, file_path: str):
         """
@@ -122,30 +196,32 @@ class State:
             if set(self.aircraft.columns) != set(aircraft.columns):
                 print(f"Expected headings: {self.aircraft.columns}")
                 print(f"Given headings: {aircraft.columns}")
-                raise ValueError(f"Column headings differ to those expected")
+                raise ValueError(
+                    f"Column headings for aircraft dataframe differ to those expected"
+                )
 
         self.aircraft = aircraft
 
-    def __str__(self):
+    def _load_actions(self, file_path: str):
         """
-        Print the state.
+        Load action state from a .csv file.
+        Note this will replace the current action state.
         """
 
-        width = 72
-        buffer = " STATE ".center(width, "=") + "\n"
-        buffer += f"{self.time}".center(width, " ") + "\n"
+        with open(file_path) as file:
+            actions = pd.read_csv(file, skipinitialspace=True)
 
-        # buffer += " fixes ".center(width, "-") + "\n"
-        # buffer += f"{self.fixes}\n"
+        # Check column headings match
+        if set(self.actions.columns) != set(actions.columns):
+            print(f"Expected headings: {self.actions.columns}")
+            print(f"Given headings: {actions.columns}")
+            raise ValueError(
+                f"Column headings for actions dataframe differ to those expected"
+            )
+        actions["time"] = pd.to_datetime(actions["time"], format=settings.TIME_FORMAT)
+        actions = actions.set_index("time")
 
-        # buffer += " sectors ".center(width, "-") + "\n"
-        # buffer += f"{self.sectors}\n"
-
-        buffer += " aircraft ".center(width, "-") + "\n"
-        buffer += f"{self.aircraft}\n"
-
-        buffer += "".center(width, "=")
-        return buffer
+        self.actions = actions
 
     def add_aircraft(
         self,
@@ -153,12 +229,18 @@ class State:
         agent: str,
         lat: float,
         lon: float,
-        alt: float,
-        target_alt: float,
+        flight_level: float,
+        target_flight_level: float,
         heading: float,
+        target_heading: float,
         speed: float,
+        target_speed: float,
         rise: float,
+        max_rise_rate: float,
         turn: float,
+        max_turn_rate: float,
+        acceleration: float,
+        max_acceleration: float,
     ):
         """
         Add an aircraft to the simulation.
@@ -167,7 +249,23 @@ class State:
         if callsign in self.aircraft.index:
             raise ValueError(f"Aircraft {callsign} already exists")
 
-        self.aircraft.loc[callsign] = [agent, lat, lon, alt, target_alt, heading, speed, rise, turn]
+        self.aircraft.loc[callsign] = [
+            agent,
+            lat,
+            lon,
+            flight_level,
+            target_flight_level,
+            heading,
+            target_heading,
+            speed,
+            target_speed,
+            rise,
+            max_rise_rate,
+            turn,
+            max_turn_rate,
+            acceleration,
+            max_acceleration,
+        ]
 
     def remove_aircraft(self, callsign: str):
         """
@@ -179,15 +277,96 @@ class State:
 
         self.aircraft.drop(callsign, inplace=True)
 
-    def evolve(self, time_delta: datetime.timedelta):
+    def queue_actions(self, actions: list[dict]):
+        """
+        Add a list of actions to the the queue.
+        """
+
+        for action in actions:
+            time = datetime.datetime.strptime(action.pop("time"), settings.TIME_FORMAT)
+            if action["kind"] in ["flight_level", "heading", "speed"]:
+                action["value"] = float(action["value"])
+            elif action["kind"] == "bay":
+                self.aircraft.at[action["callsign"], "bay"] = action["bay"]
+            else:
+                raise ValueError(f"Unknown action kind {action['kind']}")
+
+            self.actions = pd.concat([self.actions, pd.DataFrame(action, index=[time])])
+
+    def evolve(self, evolve_delta: datetime.timedelta):
         """
         Evolve the simulation by a given time delta.
         """
 
-        self._move_aircraft_laterally(time_delta)
-        self._move_aircraft_vertically(time_delta)
-        self._rotate_aircraft(time_delta)
-        self.time += time_delta
+        if evolve_delta < datetime.timedelta(seconds=0):
+            raise ValueError(f"Evolve delta must be positive")
+
+        evolve_delta -= self.extra_time
+        num_steps = int(evolve_delta / settings.TIME_STEP_DELTA)
+        if (num_steps * settings.TIME_STEP_DELTA) < evolve_delta:
+            num_steps += 1
+        self.extra_time = (num_steps * settings.TIME_STEP_DELTA) - evolve_delta
+
+        for _ in range(num_steps):
+            self._process_action_queue(settings.TIME_STEP_DELTA)
+            self._rotate_aircraft(settings.TIME_STEP_DELTA)
+            self._accelerate_aircraft(settings.TIME_STEP_DELTA)
+            self._move_aircraft_laterally(settings.TIME_STEP_DELTA)
+            self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
+            self.time += settings.TIME_STEP_DELTA
+            self.tick += 1
+
+    def _process_action_queue(self, time_delta: datetime.timedelta):
+        """
+        Find the actions in the queue that are due to be processed.
+        """
+
+        actions = self.actions.loc[
+            (self.actions.index >= self.time)
+            & (self.actions.index < (self.time + settings.TIME_STEP_DELTA))
+        ]
+
+        for _, action in actions.iterrows():
+            self._handle_action(action)
+
+    def _handle_action(self, action: dict):
+        """
+        Perform the given action.
+        """
+
+        kind = action["kind"]
+        if kind in [
+            "flight_level",
+            "speed",
+            "heading",
+        ]:
+            callsign = action["callsign"]
+            new_target = action["value"]
+            self.aircraft.loc[(callsign, f"target_{kind}")] = new_target
+        else:
+            raise ValueError(
+                f"Action: {kind} is not yet implemented by this simulator."
+            )
+
+    def _accelerate_aircraft(self, time_delta: datetime.timedelta):
+        """
+        Evolve the speed of the aircraft.
+        """
+
+        dt = time_delta.total_seconds()
+
+        def accelerate_aircraft_helper(aircraft):
+            aircraft["acceleration"] = (
+                calc_sign(aircraft["speed"], aircraft["target_speed"], 10.0)
+                * aircraft["max_acceleration"]
+            )
+            return pd.Series(aircraft)
+
+        self.aircraft = self.aircraft.apply(accelerate_aircraft_helper, axis=1)
+
+        self.aircraft["speed"] += (
+            self.aircraft["acceleration"] * time_delta.total_seconds()
+        )
 
     def _move_aircraft_laterally(self, time_delta: datetime.timedelta):
         """
@@ -195,8 +374,7 @@ class State:
         """
 
         dt = time_delta.total_seconds()
-
-        distances = self.aircraft["speed"] * (1852 / 3600) * dt
+        distances = self.aircraft["speed"] * (1852.0 / 3600.0) * dt
         proj_lon, proj_lat, _ = self.geod.fwd(
             self.aircraft["lon"],
             self.aircraft["lat"],
@@ -209,38 +387,46 @@ class State:
 
     def _move_aircraft_vertically(self, time_delta: datetime.timedelta):
         """
-        Evolve the vertical (alt) position of the aircraft.
-
-        Once an altitude greater to or equal to the target altitude is reached, 
-        the rise will adjust to 0.0 in order to maintain target altitude.
+        Evolve the altitude (flight_level) of the aircraft forward in time.
         """
 
+        def move_aircraft_vertically_helper(aircraft):
+            aircraft["rise"] = (
+                calc_sign(
+                    aircraft["flight_level"], aircraft["target_flight_level"], 10.0
+                )
+                * aircraft["max_rise_rate"]
+            )
+            return pd.Series(aircraft)
+
+        self.aircraft = self.aircraft.apply(move_aircraft_vertically_helper, axis=1)
+
         dt = time_delta.total_seconds()
-
-        self.aircraft["alt"] += self.aircraft["rise"] * dt
-        # increase the altitude based on rise (absolute value speed) * change in time
-
-        for i in range((len(self.aircraft.index))):
-            # iterate through each aircraft to change each altitude to the target
-            altdifference=self.aircraft["target_alt"][i]-self.aircraft["alt"][i]
-            # difference between the target altitude and the altitude flight is currently at 
-            if altdifference==1 or altdifference==0 or altdifference==2:
-                # if the difference between the target and current altitude is either 0, 1, 2 flight levels (due to odd/even rise), execute:
-                callsign=self.aircraft.index[i]
-                self.aircraft.loc[(callsign,"rise")] = 0.0
-                # change the rise in the aircraft DF for which target altitude reached to zero to prevent further increase
-                # self.aircraft["rise"][i] = 0.0 also works but only iterates over the copy
-            elif altdifference<=-1:
-                callsign=self.aircraft.index[i]
-                self.aircraft.loc[(callsign,"rise")] = 0.0
-               # change the rise in the aircraft DF to zero, to prevent aircraft getting vertically further from target altitude
-
+        self.aircraft["flight_level"] += self.aircraft["rise"] * dt
 
     def _rotate_aircraft(self, time_delta: datetime.timedelta):
         """
-        Evolve the turn (heading) of the aircraft.
+        Evolve the turn (heading) of the aircraft forward in time.
         """
+
+        def rotate_aircraft_helper(aircraft):
+            delta = aircraft["target_heading"] - aircraft["heading"]
+            if delta < -180.0:
+                delta += 360.0
+            aircraft["turn"] = calc_sign(0, delta, 5.0) * aircraft["max_turn_rate"]
+            return pd.Series(aircraft)
+
+        self.aircraft = self.aircraft.apply(rotate_aircraft_helper, axis=1)
 
         dt = time_delta.total_seconds()
         self.aircraft["heading"] += self.aircraft["turn"] * dt
         self.aircraft["heading"] %= 360.0
+
+
+def calc_sign(x, target_x, length_scale):
+    n = (target_x - x) / length_scale
+    return clamp(n, -1.0, 1.0)
+
+
+def clamp(num, min_value, max_value):
+    return max(min(num, max_value), min_value)

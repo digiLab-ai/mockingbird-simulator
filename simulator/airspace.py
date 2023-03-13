@@ -41,14 +41,14 @@ class Airspace:
 
         return Airspace(vols)
 
-    def contains(self, lat: float, lon: float, alt: float):
+    def contains(self, lat: float, lon: float, flight_level: float):
         """
         Check if a point is contained within the volume.
         Points on the boundary are considered to be contained.
         """
 
         for (min, max, area) in self.vols:
-            if alt < min or alt > max:
+            if flight_level < min or flight_level > max:
                 continue
             if area.contains(shapely.geometry.Point(lon, lat)):
                 return True
