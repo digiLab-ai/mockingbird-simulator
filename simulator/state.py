@@ -190,7 +190,7 @@ class State:
         """
 
         with open(file_path) as file:
-            aircraft = pd.read_csv(file, index_col=0, skipinitialspace=True)
+            aircraft = pd.r§ead_csv(file, index_col=0, skipinitialspace=True)
 
             # Check column headings match
             if set(self.aircraft.columns) != set(aircraft.columns):
