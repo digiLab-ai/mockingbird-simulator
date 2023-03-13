@@ -190,7 +190,7 @@ class State:
         """
 
         with open(file_path) as file:
-            aircraft = pd.r§ead_csv(file, index_col=0, skipinitialspace=True)
+            aircraft = pd.read_csv(file, index_col=0, skipinitialspace=True)
 
             # Check column headings match
             if set(self.aircraft.columns) != set(aircraft.columns):
@@ -279,7 +279,7 @@ class State:
 
     def queue_actions(self, actions: list[dict]):
         """
-        Add a list of actions to the the queue.
+        Add a list of actions to the queue.
         """
 
         for action in actions:
@@ -443,6 +443,9 @@ class State:
 
 
 def calc_sign(x, target_x, length_scale):
+    """
+        Smoothing function for aircraft evolution, so that actions are not blunt and abrupt discrete changes. 
+    """
     n = (target_x - x) / length_scale
     return clamp(n, -1.0, 1.0)
 

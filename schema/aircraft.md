@@ -1,0 +1,27 @@
+Each aircraft in the simulation have unique properties as defined in the aircraft.csv or in the running of the simulation (e.g. run.py, via a Python dictionary). Aircraft have:
+
+- A time at which they are introduced to the simulation and evolve with the simulation
+- An associated agent
+- An associated and unique callsign
+- An action--defined as "kind" and "subkind"--see action.md for more details. "kind" defines what type of action the flight will take within the simulation (increase/decrease flight_level, speed, heading, or bay) whilst "subkind" specifies whether this increase or decrease is done in a relative or absolute manner
+- A value--associated with the action. E.g. if the action is specified as speed, this value is a new target speed for the aircraft
+
+An aircraft in the simulation has the following associated values as it evolves through the simulation:
+
+| Aircraft attribute     | Meaning                                                                                                                                                                                     | Units (if applicable)                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Bay                    | Where the aircraft is situated on the user's end. INCOMM or OUTCOMM                                                                                                                         | Not applicable.                                 |
+| Latitude and longitude | Position of the aircraft as specified by geographic degrees.                                                                                                                                | Respectively, degrees North/South or East/West. |
+| Flight level           | Vertical position of the aircraft. Expressed as the altitude at standard air pressure in units of hundreds of feet (100ft), where standard air pressure is assumed 1013.25hPa at sea level. | 100ft.                                          |
+| Target flight level    | Desired flight level after simulation evolution.                                                                                                                                            | 100ft.                                          |
+| Heading                | Directionality of the aircraft with respect to the horizon.                                                                                                                                 | Degrees clockwise from North.                   |
+| Target heading         | Desired heading after simulation evolution.                                                                                                                                                 | Degrees clockwise from North.                   |
+| Speed                  | Speed of the aircraft.                                                                                                                                                                      | Knots (nautical miles per hour).                |
+| Target speed           | Desired speed of the aircraft.                                                                                                                                                              | Knots (nautical miles per hour).                |
+| Rise                   | Vertical speed of the aircraft.                                                                                                                                                             | Flight levels per second.                       |
+| Max rise rate          | Maximum rate of rise and fall of flight levels.                                                                                                                                             | Flight levels per second.                       |
+| Turn                   | Directionality change of the aircraft.                                                                                                                                                      | Degrees clockwise per second.                   |
+| Max turn rate          | Maximum rate of turn possible for the aircraft.                                                                                                                                             | Degrees per second.                             |
+| Acceleration           | Acceleration (rate of change of speed) of the aircraft.                                                                                                                                     | Knots (nautical miles per hour).                |
+| Max acceleration       | Maximum acceleration the aircraft can endure.                                                                                                                                               | Knots (nautical miles per hour).                |
+| Route                  | Route the aircraft takes through the map sectors of the simulation.                                                                                                                         | Not applicable.                                 |
