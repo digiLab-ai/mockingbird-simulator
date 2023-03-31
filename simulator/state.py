@@ -363,6 +363,9 @@ class State:
                 self.aircraft.loc[(callsign, "bay")] = action["value"]
                 return
 
+        if kind == "select_aircraft":
+            return
+
         raise ValueError(
             f"Don't know how to handle {action['kind']}-{action['subkind']} action."
         )
