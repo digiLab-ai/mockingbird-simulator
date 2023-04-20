@@ -1,9 +1,10 @@
 import datetime
 import json
-import numpy as np
 import os
-import pandas as pd
 import pathlib
+
+# import numpy as np # TODO: Remove because not used
+import pandas as pd
 import pyproj
 
 from . import settings
