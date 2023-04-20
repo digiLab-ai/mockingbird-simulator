@@ -39,7 +39,7 @@ class State:
         self.sectors = pd.DataFrame(  # Regions of controlled airspace
             {
                 "agent": pd.Series(dtype="str"),  # Agent controlling the sector
-                "airspace": pd.Series(dtype="object"),  # Agent controlling the sector
+                "airspace": pd.Series(dtype="object"),  # Airspace boundary
             },
             dtype="str",
         )
@@ -178,10 +178,10 @@ class State:
         # Clear the current sectors
         self.sectors = pd.DataFrame(columns=self.sectors.columns)
         with open(file_path) as file:
-            for (name, data) in json.load(file).items():
+            for name, data in json.load(file).items():
                 self.sectors.loc[name] = [
                     data["agent"],
-                    Airspace.from_json(json.dumps(data["vols"]), self.fixes),
+                    Airspace(data["vols"]),
                 ]
 
     def _load_aircraft(self, file_path: str):

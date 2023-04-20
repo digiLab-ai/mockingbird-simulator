@@ -1,3 +1,4 @@
+import ast
 import datetime
 import json
 import os
@@ -86,9 +87,17 @@ class Simulator(SimABC):
         Get the static scenario data.
         """
 
+        sectors = {}
+        for name, sector in self.state.sectors.iterrows():
+            boundaries = []
+            for vol in sector.airspace.vols:
+                boundaries.append(vol["boundary"])
+            sectors[name] = boundaries
+
         return {
             "scenario_name": self.scenario_name,
             "bay_names": self.state.bay_names,
+            "sectors": sectors,
             "fixes": [
                 {"id": i, "name": name} | self.state.fixes.loc[name].to_dict()
                 for i, name in enumerate(self.state.fixes.index)
@@ -100,7 +109,7 @@ class Simulator(SimABC):
         Get the volatile scenario data.
         """
 
-        return {
+        data = {
             "time": self.state.time.isoformat(sep=" "),
             "actions": [
                 {"id": i,
@@ -113,6 +122,11 @@ class Simulator(SimABC):
                 for i, callsign in enumerate(self.state.aircraft.index)
             ],
         }
+
+        for aircraft in data["aircraft"]:
+            aircraft["route"] = ast.literal_eval(aircraft["route"])
+
+        return data
 
     def action(self, actions: list[dict]) -> bool:
         """
