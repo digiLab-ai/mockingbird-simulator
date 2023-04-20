@@ -1,7 +1,6 @@
 import datetime
 import json
 import os
-import pandas as pd
 
 from interface import Simulator as SimABC
 
