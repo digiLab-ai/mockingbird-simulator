@@ -84,9 +84,18 @@ class Simulator(SimABC):
         Get the static scenario data.
         """
 
+        boundaries = []
+        for sector in self.state.sectors.itertuples():
+            for vol in sector.airspace.vols:
+                boundaries.append(vol["boundary"])
+
         return {
             "scenario_name": self.scenario_name,
             "bay_names": self.state.bay_names,
+            # "airspace": [
+            #     {"id": i, "name": name} | self.state.airspace.loc[name].to_dict()
+            #     for i, name in enumerate(self.state.airspace.index)
+            # ],
             "fixes": [
                 {"id": i, "name": name} | self.state.fixes.loc[name].to_dict()
                 for i, name in enumerate(self.state.fixes.index)

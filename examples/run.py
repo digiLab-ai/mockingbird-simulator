@@ -16,7 +16,7 @@ def iterate_forward_one_step(sim, update_period, rate_of_time):
     now = datetime.datetime.now()
 
     # Display the current state of the simulator.
-    sim.state.display(clear=True)
+    sim.state.display(clear=True, sectors=True)
 
     # Increment the simulator forward in time.
     sim.evolve(update_period * rate_of_time)
