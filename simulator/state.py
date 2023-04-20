@@ -49,6 +49,16 @@ class State:
                 "bay": pd.Series(dtype="str"),  # Bay to hold the aircraft strip
                 "lat": pd.Series(dtype="float"),  # Degrees North/South
                 "lon": pd.Series(dtype="float"),  # Degrees East/West
+                "lat_1": pd.Series(dtype="float"),  # Historical position 1
+                "lon_1": pd.Series(dtype="float"),  # Historical position 1
+                "lat_2": pd.Series(dtype="float"),  # Historical position 2
+                "lon_2": pd.Series(dtype="float"),  # Historical position 2
+                "lat_3": pd.Series(dtype="float"),  # Historical position 3
+                "lon_3": pd.Series(dtype="float"),  # Historical position 3
+                "lat_4": pd.Series(dtype="float"),  # Historical position 4
+                "lon_4": pd.Series(dtype="float"),  # Historical position 4
+                "lat_5": pd.Series(dtype="float"),  # Historical position 5
+                "lon_5": pd.Series(dtype="float"),  # Historical position 5
                 "flight_level": pd.Series(dtype="float"),  # Flight level
                 "target_flight_level": pd.Series(dtype="float"),  # Target flight level
                 "heading": pd.Series(dtype="float"),  # Degrees clockwise from North
@@ -192,6 +202,18 @@ class State:
         with open(file_path) as file:
             aircraft = pd.read_csv(file, index_col=0, skipinitialspace=True)
 
+            start_lats = aircraft["lat"].tolist()
+            start_lons = aircraft["lon"].tolist()
+
+            start_index = 5
+            for n in range(5):
+                aircraft.insert(
+                    start_index + (2 * n), f"lat_{n + 1}", start_lats, False
+                )
+                aircraft.insert(
+                    start_index + (2 * n) + 1, f"lon_{n + 1}", start_lons, False
+                )
+
             # Check column headings match
             if set(self.aircraft.columns) != set(aircraft.columns):
                 print(f"Expected headings: {self.aircraft.columns}")
@@ -316,6 +338,12 @@ class State:
             self._move_aircraft_vertically(settings.TIME_STEP_DELTA)
             self.time += settings.TIME_STEP_DELTA
             self.tick += 1
+
+        self.aircraft["lat_1"] = self.aircraft["lat"]
+        self.aircraft["lon_1"] = self.aircraft["lon"]
+        for n in reversed(range(4)):
+            self.aircraft[f"lat_{n + 2}"] = self.aircraft[f"lat_{n + 1}"]
+            self.aircraft[f"lon_{n + 2}"] = self.aircraft[f"lon_{n + 1}"]
 
     def _process_action_queue(self, time_delta: datetime.timedelta):
         """
