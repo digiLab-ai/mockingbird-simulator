@@ -1,7 +1,7 @@
+import ast
 import datetime
 import json
 import os
-import pandas as pd
 
 from interface import Simulator as SimABC
 
@@ -98,7 +98,7 @@ class Simulator(SimABC):
         Get the volatile scenario data.
         """
 
-        return {
+        data = {
             "time": self.state.time.isoformat(sep=" "),
             "actions": [
                 {"id": i, "time": f"{time}"} | self.state.actions.loc[time].to_dict()
@@ -110,6 +110,11 @@ class Simulator(SimABC):
                 for i, callsign in enumerate(self.state.aircraft.index)
             ],
         }
+
+        for aircraft in data["aircraft"]:
+            aircraft["route"] = ast.literal_eval(aircraft["route"])
+
+        return data
 
     def action(self, actions: list[dict]) -> bool:
         """
