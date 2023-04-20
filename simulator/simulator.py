@@ -124,8 +124,6 @@ class Simulator(SimABC):
 
             lats = [aircraft["lat"]]
             lons = [aircraft["lon"]]
-            aircraft.pop("lat")
-            aircraft.pop("lon")
             for n in range(5):
                 lats.append(aircraft[f"lat_{n + 1}"])
                 aircraft.pop(f"lat_{n + 1}")
