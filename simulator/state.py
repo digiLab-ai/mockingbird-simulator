@@ -386,11 +386,6 @@ class State:
                 self.aircraft.loc[(callsign, f"target_{kind}")] = new_target
                 return
 
-        if kind == "bay":
-            if subkind == "move":
-                self.aircraft.loc[(callsign, "bay")] = action["value"]
-                return
-
         if kind == "select_aircraft":
             return
 

@@ -140,3 +140,11 @@ class Simulator(SimABC):
         """
         self.state.queue_actions(actions)
         return True
+
+    def update_aircraft_bay(self, callsign: str, bay_id: str) -> bool:
+        """
+        Move an aircraft to a different bay.
+        """
+
+        self.state.aircraft.loc[(callsign, "bay")] = bay_id
+        return True
