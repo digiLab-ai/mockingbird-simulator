@@ -72,14 +72,14 @@ class Simulator(SimABC):
 
         return True
 
-    def environment(self) -> dict:
+    def environment(self, _sector_id: str) -> dict:
         """
         Get the current environment state.
         """
 
         return {}
 
-    def static_data(self) -> dict:
+    def static_data(self, _sector_id: str) -> dict:
         """
         Get the static scenario data.
         """
@@ -101,7 +101,7 @@ class Simulator(SimABC):
             ],
         }
 
-    def dynamic_data(self) -> dict:
+    def dynamic_data(self, _sector_id: str) -> dict:
         """
         Get the volatile scenario data.
         """
