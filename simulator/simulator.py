@@ -27,7 +27,8 @@ class Simulator(SimABC):
         List the scenarios in a given category.
         """
 
-        scenario_names = os.listdir(os.path.join(settings.SCENARIO_DIR, category))
+        scenario_names = os.listdir(
+            os.path.join(settings.SCENARIO_DIR, category))
         scenario_names.sort()
 
         return scenario_names
@@ -39,6 +40,7 @@ class Simulator(SimABC):
         """
 
         return {
+            "simulator": "Mockingbird",
             "category": category,
             "scenario_name": scenario_name,
             "meta": json.load(
@@ -66,7 +68,8 @@ class Simulator(SimABC):
         """
 
         if delta <= 0:
-            raise ValueError("Time delta must be positive. Received: {}.", delta)
+            raise ValueError(
+                "Time delta must be positive. Received: {}.", delta)
 
         self.state.evolve(datetime.timedelta(seconds=delta))
 
@@ -109,7 +112,8 @@ class Simulator(SimABC):
         data = {
             "time": self.state.time.isoformat(sep=" "),
             "actions": [
-                {"id": i, "time": f"{time}"} | self.state.actions.loc[time].to_dict()
+                {"id": i,
+                    "time": f"{time}"} | self.state.actions.loc[time].to_dict()
                 for i, time in enumerate(self.state.actions.index)
             ],
             "aircraft": [
