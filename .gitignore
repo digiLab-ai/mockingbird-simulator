@@ -137,5 +137,8 @@ node_modules/
 # Envirnment variables
 .env
 
+# Mac
+.DS_Store
+
 # VSCode
 .vscode/
